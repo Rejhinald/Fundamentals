@@ -22,7 +22,7 @@ This repository is my personal collection of notes and a web app centered around
 
 WATCH IN ORDER! 
 
-Full Course Guides from Dave Gray.
+Full Course Guides from Dave Gray. 53 hours prox.
 
 HTML: https://www.youtube.com/watch?v=mJgBOIoGihA  
 CSS: https://www.youtube.com/watch?v=n4R2E7O-Ngo  
