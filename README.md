@@ -15,5 +15,5 @@ This repository is my personal collection of notes and a web app centered around
 
 WATCH IN ORDER! 
 
-1st: JAVASCRIPT: https://www.youtube.com/watch?v=EfAl9bwzVZk 
+1st: JAVASCRIPT: https://www.youtube.com/watch?v=EfAl9bwzVZk  
 2nd: TYPESCRIPT: https://www.youtube.com/watch?v=gieEQFIfgYc
