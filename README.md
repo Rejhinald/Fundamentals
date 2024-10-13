@@ -21,9 +21,9 @@ WATCH IN ORDER!
 
 Full Course Guides from Dave Gray.
 
-HTML: https://www.youtube.com/watch?v=mJgBOIoGihA
-CSS: https://www.youtube.com/watch?v=n4R2E7O-Ngo
-JAVASCRIPT: https://www.youtube.com/watch?v=EfAl9bwzVZk  
-TYPESCRIPT: https://www.youtube.com/watch?v=gieEQFIfgYc
-NEXTJS: https://www.youtube.com/watch?v=843nec-IvW0
-NODEJS: https://www.youtube.com/watch?v=f2EqECiTBL8
+HTML: https://www.youtube.com/watch?v=mJgBOIoGihA  
+CSS: https://www.youtube.com/watch?v=n4R2E7O-Ngo  
+JAVASCRIPT: https://www.youtube.com/watch?v=EfAl9bwzVZk    
+TYPESCRIPT: https://www.youtube.com/watch?v=gieEQFIfgYc  
+NEXTJS: https://www.youtube.com/watch?v=843nec-IvW0  
+NODEJS: https://www.youtube.com/watch?v=f2EqECiTBL8  
