@@ -15,6 +15,9 @@ This repository is my personal collection of notes and a web app centered around
 [] User auth using node.js postgresql  
 [] Setup CRUD (blog type)  
 
+## Future Future Goals
+[] State Management
+
 ## Learning fundamentals:
 
 WATCH IN ORDER! 
