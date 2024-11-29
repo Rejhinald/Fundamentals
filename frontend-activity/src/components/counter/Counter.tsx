@@ -4,6 +4,14 @@ import Card from 'react-bootstrap/Card';
 
 export default function Counter() {
   const [count, setCount] = useState(0);
+  
+  const addCount = () => {
+    setCount(count + 1);
+  }
+
+  const minusCount = () => {
+    setCount(count - 1);
+  }
 
   return (
     <>
@@ -12,14 +20,14 @@ export default function Counter() {
           <p>Counter: {count}</p>
           <div className="d-flex justify-content-center gap-2">
             <Button
-              onClick={() => setCount((count) => count - 1)}
+              onClick={() => minusCount()}
               variant="danger"
               size="sm"
             >
               -1
             </Button>
             <Button
-              onClick={() => setCount((count) => count + 1)}
+              onClick={() => addCount()}
               variant="primary"
               size="sm"
             >
