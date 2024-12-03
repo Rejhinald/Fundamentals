@@ -1,3 +1,70 @@
+
+// GetMovie retrieves a specific movie by its ID from the DynamoDB table
+/*
+Key Terms:
+- DynamoDB: A database service by Amazon that stores and retrieves data
+- ULID: A unique identifier format (like an ID number) that's time-sorted
+- JSON: A way to format data that's easy for both humans and computers to read
+- Unmarshal: Converting data from one format (like DynamoDB) to another (like Go structs)
+- Struct: A collection of fields that group related data together
+- Context: A way to carry deadlines and cancellation signals across API boundaries
+- Map: A collection of key-value pairs, like a dictionary
+
+// GetMovie retrieves a single movie record from the DynamoDB database.
+//
+// Parameters:
+//   - id: A string containing the ULID of the movie to retrieve
+//
+// Returns:
+//   - revel.Result: Contains either:
+//     * The movie data as JSON if found
+//     * An error message if:
+//       - The DynamoDB client isn't initialized
+//       - The ID format is invalid
+//       - The movie doesn't exist
+//       - There's an error accessing the database
+//       - There's an error processing the data
+//
+// The function performs the following steps:
+// 1. Validates the DynamoDB client configuration
+// 2. Verifies the provided ID is a valid ULID
+// 3. Queries DynamoDB for the movie
+// 4. If found, converts the DynamoDB data to a Movie struct
+// 5. Returns the movie data or appropriate error message
+*/
+
+// GetMovie retrieves a single movie from DynamoDB by its ULID.
+//
+// Parameters:
+//   - id: string - A ULID (Universally Unique Lexicographically Sortable Identifier) as string
+//
+// Returns:
+//   - revel.Result - Contains either the movie data as JSON or an error message
+//
+// Flow:
+// 1. Validates DynamoDB client initialization
+// 2. Validates ULID format using ulid.Parse()
+// 3. Queries DynamoDB using GetItem operation
+// 4. Processes the DynamoDB response
+//
+// Uses:
+//   - context.Background() - Creates an empty context for AWS operations
+//   - dynamodb.GetItemInput - AWS SDK struct for GetItem parameters
+//   - types.AttributeValue - DynamoDB attribute value interface
+//   - map[string]types.AttributeValue - Go map for DynamoDB item attributes
+//   - attributevalue.UnmarshalMap - AWS SDK function to convert DynamoDB map to Go struct
+//   - revel.RenderJSON - Revel framework method to return JSON response
+//
+// Notes:
+//   - Implements error handling for various failure scenarios
+//   - Uses range iteration over map to process DynamoDB attributes
+//   - Excludes ID field from temporary map during processing
+//   - Follows RESTful API patterns
+
+
+
+
+
 // Package controllers handles the routing and business logic for the application
 package controllers
 
@@ -111,7 +178,7 @@ func (c MoviesController) CreateMovie() revel.Result {
 	return c.RenderJSON(movie)
 }
 
-// GetMovie retrieves a specific movie by its ID from the DynamoDB table
+
 func (c MoviesController) GetMovie(id string) revel.Result {
 	// Check if DynamoDB client is properly initialized
 	if app.DynamoDBClient == nil {

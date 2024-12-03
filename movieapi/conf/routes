@@ -7,6 +7,12 @@ GET     /movies                                  MoviesController.GetMovies
 # Route to get movie
 GET     /movies/:id                              MoviesController.GetMovie
 
+# Route to update movie
+PUT     /movies/:id                              MoviesController.UpdateMovie
+
+# Route to delete movie
+DELETE     /movies/:id                           MoviesController.DeleteMovie
+
 # Basic GET route for home or other actions
 GET     /                                       App.Index
 
