@@ -1,0 +1,7 @@
+{
+    "ID": {"S": "37001d2e-064c-4798-87db-ac45f6d4d497"},
+    "Title": {"S": "Inception"},
+    "Plot": {"S": "A thief who steals corporate secrets"},
+    "Rating": {"N": "8.8"},
+    "Year": {"N": "2010"}
+}

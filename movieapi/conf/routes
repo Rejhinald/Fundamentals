@@ -1,0 +1,11 @@
+# Route to create a movie via POST request
+POST    /movies/createMovie                      MoviesController.CreateMovie
+
+# Basic GET route for home or other actions
+GET     /                                       App.Index
+
+# Route to serve static files
+GET     /public/*filepath                        Static.Serve("public")
+
+# Catch-all for reverse routing (use with caution in production)
+*       /:controller/:action                      :controller.:action
