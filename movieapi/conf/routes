@@ -1,6 +1,9 @@
 # Route to create a movie via POST request
 POST    /movies/createMovie                      MoviesController.CreateMovie
 
+# Route to movie list
+GET /movies MoviesController.GetMovies
+
 # Basic GET route for home or other actions
 GET     /                                       App.Index
 

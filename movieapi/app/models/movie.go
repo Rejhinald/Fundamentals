@@ -31,6 +31,8 @@ func NewMovie(title, plot string, rating float64, year string) (*Movie, error) {
 	}, nil
 }
 
+
+
 // MarshalJSON customizes JSON serialization for ULID
 func (m Movie) MarshalJSON() ([]byte, error) {
 	type Alias Movie // Create an alias to avoid recursion in JSON marshalling
