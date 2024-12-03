@@ -25,23 +25,8 @@ func (c MoviesController) GetMovies() revel.Result {
 		return c.RenderJSON(map[string]string{"error": "Server configuration error"})
 	}
 
-	result, err := app.DynamoDBClient.Scan(context.Background(), &dynamodb.ScanInput{
-		TableName:                 aws.String("Movies"),
-		AttributesToGet:           []string{},
-		ConditionalOperator:       "",
-		ConsistentRead:            new(bool),
-		ExclusiveStartKey:         map[string]types.AttributeValue{},
-		ExpressionAttributeNames:  map[string]string{},
-		ExpressionAttributeValues: map[string]types.AttributeValue{},
-		FilterExpression:          new(string),
-		IndexName:                 new(string),
-		Limit:                     new(int32),
-		ProjectionExpression:      new(string),
-		ReturnConsumedCapacity:    "",
-		ScanFilter:                map[string]types.Condition{},
-		Segment:                   new(int32),
-		Select:                    "",
-		TotalSegments:             new(int32),
+	result, err := app.DynamoDBClient.Scan(context.TODO(), &dynamodb.ScanInput{
+		TableName: aws.String("Movies"),
 	})
 	if err != nil {
 		return c.RenderJSON(map[string]string{"error": err.Error()})
@@ -106,3 +91,45 @@ func (c MoviesController) CreateMovie() revel.Result {
 	return c.RenderJSON(movie)
 }
 
+func (c MoviesController) GetMovie(id string) revel.Result {
+	if app.DynamoDBClient == nil {
+		return c.RenderJSON(map[string]string{"error": "Server configuration error"})
+	}
+
+	// Validate ULID
+	if _, err := ulid.Parse(id); err != nil {
+		return c.RenderJSON(map[string]string{"error": "Invalid ID format"})
+	}
+
+	result, err := app.DynamoDBClient.GetItem(context.Background(), &dynamodb.GetItemInput{
+		TableName: aws.String("Movies"),
+		Key: map[string]types.AttributeValue{
+			"ID": &types.AttributeValueMemberS{Value: id},
+		},
+	})
+	if err != nil {
+		return c.RenderJSON(map[string]string{"error": err.Error()})
+	}
+
+	if result.Item == nil {
+		return c.RenderJSON(map[string]string{"error": "Movie not found"})
+	}
+
+	var movie models.Movie
+	tempItem := make(map[string]types.AttributeValue)
+	for k, v := range result.Item {
+		if k != "ID" {
+			tempItem[k] = v
+		}
+	}
+
+	if err := attributevalue.UnmarshalMap(tempItem, &movie); err != nil {
+		return c.RenderJSON(map[string]string{"error": "Error processing movie data"})
+	}
+
+	if parsedID, err := ulid.Parse(id); err == nil {
+		movie.ID = parsedID
+	}
+
+	return c.RenderJSON(movie)
+}

@@ -2,7 +2,10 @@
 POST    /movies/createMovie                      MoviesController.CreateMovie
 
 # Route to movie list
-GET /movies MoviesController.GetMovies
+GET     /movies                                  MoviesController.GetMovies
+
+# Route to get movie
+GET     /movies/:id                              MoviesController.GetMovie
 
 # Basic GET route for home or other actions
 GET     /                                       App.Index
@@ -10,5 +13,3 @@ GET     /                                       App.Index
 # Route to serve static files
 GET     /public/*filepath                        Static.Serve("public")
 
-# Catch-all for reverse routing (use with caution in production)
-*       /:controller/:action                      :controller.:action
