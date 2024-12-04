@@ -2,40 +2,59 @@ import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 
-export default function Counter() {
-  const [count, setCount] = useState(0);
-  
+interface CounterProps {
+  initialCount?: number;
+  step?: number;
+  onCountChange?: (newCount: number) => void;
+  cardStyle?: React.CSSProperties;
+  buttonLabels?: {
+    increment: string;
+    decrement: string;
+  };
+}
+
+export default function Counter({
+  initialCount = 0, 
+  step = 1, 
+  onCountChange, 
+  cardStyle = {}, 
+  buttonLabels = { increment: "+1", decrement: "-1" } 
+}: CounterProps) {
+  const [count, setCount] = useState(initialCount);
+
   const addCount = () => {
-    setCount(count + 1);
-  }
+    const newCount = count + step;
+    setCount(newCount);
+    onCountChange?.(newCount);
+  };
 
   const minusCount = () => {
-    setCount(count - 1);
-  }
+    const newCount = count - step;
+    setCount(newCount);
+    onCountChange?.(newCount);
+  };
 
   return (
-    <>
-      <Card style={{ width: '14rem' }}>
-        <Card.Body>
-          <p>Counter: {count}</p>
-          <div className="d-flex justify-content-center gap-2">
-            <Button
-              onClick={() => minusCount()}
-              variant="danger"
-              size="sm"
-            >
-              -1
-            </Button>
-            <Button
-              onClick={() => addCount()}
-              variant="primary"
-              size="sm"
-            >
-              +1
-            </Button>
-          </div>
-        </Card.Body>
-      </Card>
-    </>
+    <Card style={{ width: '14rem', ...cardStyle }}>
+      <Card.Body>
+        <p>Counter: {count}</p>
+        <div className="d-flex justify-content-center gap-2">
+          <Button
+            onClick={minusCount}
+            variant="danger"
+            size="sm"
+          >
+            {buttonLabels.decrement}
+          </Button>
+          <Button
+            onClick={addCount}
+            variant="primary"
+            size="sm"
+          >
+            {buttonLabels.increment}
+          </Button>
+        </div>
+      </Card.Body>
+    </Card>
   );
 }
