@@ -1,5 +1,5 @@
 # Route to create a movie via POST request
-POST    /movies/createMovie                      MoviesController.CreateMovie
+POST    /movies                                  MoviesController.CreateMovie
 
 # Route to movie list
 GET     /movies                                  MoviesController.GetMovies
