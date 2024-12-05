@@ -10,7 +10,9 @@ function App() {
     <>
       <div>
       <Header />
-      <Counter />
+      <Counter onCountChange={function (): void {
+          throw new Error('Function not implemented.');
+        } } />
       <Counter 
         initialCount={10} 
         step={5} 

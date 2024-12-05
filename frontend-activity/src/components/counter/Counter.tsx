@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
-
+import {Button, Card} from 'react-bootstrap';
 interface CounterProps {
   initialCount?: number;
   step?: number;
-  onCountChange?: (newCount: number) => void;
+  onCountChange: (newCount: number) => void;
   cardStyle?: React.CSSProperties;
   buttonLabels?: {
     increment: string;
