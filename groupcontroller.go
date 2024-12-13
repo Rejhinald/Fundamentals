@@ -2148,7 +2148,7 @@ func ExecuteMoveMembersCronJob() error {
 
 func MoveMembersCronJobHandler(companyID, groupID, userID string, members []models.MemberCronJobData, groupsToMoveIn []string, skipLogging bool) error {
 	//* Remove members to group and to connected sub applications
-	errRemoveMember := RemoveMembersCronJobHandler(groupID, companyID, userID, members, true)
+	errRemoveMember := RemoveMembersCronJobHandler(groupID, companyID, userID, members, true) // Keep skipLogging as true to prevent remove logs
 	if errRemoveMember != nil {
 		return errRemoveMember
 	}
@@ -2156,16 +2156,18 @@ func MoveMembersCronJobHandler(companyID, groupID, userID string, members []mode
 	//* Get groups data
 	individuals, subGroups := GetMembersCronJobDataType(members)
 	for _, selectedGroupID := range groupsToMoveIn {
+		// Add members to new group with skipLogging true to prevent add logs
 		err := AddIndividualMembersCronJobHandler(selectedGroupID, companyID, userID, "", individuals, true)
 		if err != nil {
 			return err
 		}
 
-		err = AddSubGroupsCronJobHandler(companyID, selectedGroupID, userID, subGroups, true) // Add true for skipLogging
+		err = AddSubGroupsCronJobHandler(companyID, selectedGroupID, userID, subGroups, true)
 		if err != nil {
 			return err
 		}
 
+		// Create only move logs
 		if !skipLogging {
 			// Get source group name
 			sourceGroup, errSource := GetGroupByID(groupID)
@@ -2187,6 +2189,7 @@ func MoveMembersCronJobHandler(companyID, groupID, userID string, members []mode
 				})
 			}
 
+			// Create company level move log
 			companyLog := models.Logs{
 				CompanyID: companyID,
 				UserID:    userID,
@@ -2205,6 +2208,7 @@ func MoveMembersCronJobHandler(companyID, groupID, userID string, members []mode
 				},
 			}
 
+			// Create group level move log
 			groupLog := models.Logs{
 				GroupID:   selectedGroupID,
 				UserID:    userID,

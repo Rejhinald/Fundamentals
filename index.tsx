@@ -243,9 +243,28 @@ const Description: React.FC<DescriptionProps> = (props) => {
                     // text = <><BulkEntry module="users" entries={activity?.LogInfo?.Users} />{getVerb(activity?.LogInfo?.Members, "has")} been deleted from <Link style={{ cursor: `${activity.LogInfo?.Group?.ID === groupId ? "default" : "pointer"}` }} className="font-weight-bolder" to={`/groups/${activity.LogInfo?.Group?.ID}`}>{activity.LogInfo?.Group?.Name} </Link>(Group).</>;
                     text = <><BulkEntry module="users" entries={activity?.LogInfo?.Users} />{getVerb(activity?.LogInfo?.Members, "has")} been deleted from {activity.LogInfo?.Group?.Status === ITEM_STATUS.INACTIVE || activity.LogInfo?.Group?.Status === ITEM_STATUS.DELETED ? activity?.LogInfo?.Group?.Name : <Link style={{ cursor: `${activity.LogInfo?.Group?.ID === groupId ? "default" : "pointer"}` }} className="font-weight-bolder" to={`/groups/${activity.LogInfo?.Group?.ID}`}>{activity.LogInfo?.Group?.Name} </Link>}(Group).</>;
                     break;
-                case LOG_ACTION.MOVE_GROUP_MEMBERS:
-                    text = <><BulkEntry module="users" entries={activity?.LogInfo?.Users} />{getVerb(activity?.LogInfo?.Users, "has")} been moved from {activity.LogInfo?.SourceGroup?.Status === ITEM_STATUS.INACTIVE || activity.LogInfo?.SourceGroup?.Status === ITEM_STATUS.DELETED ? activity?.LogInfo?.SourceGroup?.Name : <Link style={{ cursor: `${activity.LogInfo?.SourceGroup?.ID === groupId ? "default" : "pointer"}` }} className="font-weight-bolder" to={`/groups/${activity.LogInfo?.SourceGroup?.ID}`}>{activity.LogInfo?.SourceGroup?.Name}</Link>} to {activity.LogInfo?.DestinationGroup?.Status === ITEM_STATUS.INACTIVE || activity.LogInfo?.DestinationGroup?.Status === ITEM_STATUS.DELETED ? activity?.LogInfo?.DestinationGroup?.Name : <Link style={{ cursor: `${activity.LogInfo?.DestinationGroup?.ID === groupId ? "default" : "pointer"}` }} className="font-weight-bolder" to={`/groups/${activity.LogInfo?.DestinationGroup?.ID}`}>{activity.LogInfo?.DestinationGroup?.Name}</Link>}.</>;
-                    break;
+                    case LOG_ACTION.MOVE_GROUP_MEMBERS:
+                        text = <><BulkEntry module="users" entries={activity?.LogInfo?.Users} />
+                            {getVerb(activity?.LogInfo?.Users, "has")} been moved from {' '}
+                            {activity.LogInfo?.SourceGroup?.Status === ITEM_STATUS.INACTIVE || 
+                             activity.LogInfo?.SourceGroup?.Status === ITEM_STATUS.DELETED ? 
+                                activity?.LogInfo?.SourceGroup?.Name : 
+                                <Link style={{ cursor: `${activity.LogInfo?.SourceGroup?.ID === groupId ? "default" : "pointer"}` }} 
+                                      className="font-weight-bolder" 
+                                      to={`/groups/${activity.LogInfo?.SourceGroup?.ID}`}>
+                                    {activity.LogInfo?.SourceGroup?.Name}
+                                </Link>
+                            } (Group) to {' '}
+                            {activity.LogInfo?.DestinationGroup?.Status === ITEM_STATUS.INACTIVE || 
+                             activity.LogInfo?.DestinationGroup?.Status === ITEM_STATUS.DELETED ? 
+                                activity?.LogInfo?.DestinationGroup?.Name :
+                                <Link style={{ cursor: `${activity.LogInfo?.DestinationGroup?.ID === groupId ? "default" : "pointer"}` }}
+                                      className="font-weight-bolder" 
+                                      to={`/groups/${activity.LogInfo?.DestinationGroup?.ID}`}>
+                                    {activity.LogInfo?.DestinationGroup?.Name}
+                                </Link>
+                            } (Group).</>;
+                        break;
                 default:
                     break;
             }
