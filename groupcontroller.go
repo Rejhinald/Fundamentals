@@ -2103,7 +2103,8 @@ func (c GroupController) MoveMembersToAnotherGroups() revel.Result {
 		})
 	}
 
-	err := MoveMembersCronJobHandler(companyID, payload.GroupID, userID, members, payload.SelectedGroups)
+	// Pass skipLogging as false for immediate moves (to create logs)
+	err := MoveMembersCronJobHandler(companyID, payload.GroupID, userID, members, payload.SelectedGroups, false)
 	if err != nil {
 		c.Response.Status = 400
 		return c.RenderJSON(err)
@@ -2128,7 +2129,8 @@ func ExecuteMoveMembersCronJob() error {
 	var cronJobErrors []error
 	for _, cronJob := range onBoardingCronJobs {
 		if cronJob.Status == constants.ITEM_STATUS_PENDING && cronJob.Type == constants.JOB_MOVE_GROUP_MEMBERS {
-			err := MoveMembersCronJobHandler(cronJob.CompanyID, cronJob.GroupID, cronJob.CurrentUserID, cronJob.Members, cronJob.SelectedGroups)
+			// Pass skipLogging as false for scheduled moves (to create logs)
+			err := MoveMembersCronJobHandler(cronJob.CompanyID, cronJob.GroupID, cronJob.CurrentUserID, cronJob.Members, cronJob.SelectedGroups, false)
 			if err != nil {
 				return err
 			}
@@ -2144,9 +2146,9 @@ func ExecuteMoveMembersCronJob() error {
 	return nil
 }
 
-func MoveMembersCronJobHandler(companyID, groupID, userID string, members []models.MemberCronJobData, groupsToMoveIn []string) error {
+func MoveMembersCronJobHandler(companyID, groupID, userID string, members []models.MemberCronJobData, groupsToMoveIn []string, skipLogging bool) error {
 	//* Remove members to group and to connected sub applications
-	errRemoveMember := RemoveMembersCronJobHandler(groupID, companyID, userID, members)
+	errRemoveMember := RemoveMembersCronJobHandler(groupID, companyID, userID, members, true)
 	if errRemoveMember != nil {
 		return errRemoveMember
 	}
@@ -2154,23 +2156,90 @@ func MoveMembersCronJobHandler(companyID, groupID, userID string, members []mode
 	//* Get groups data
 	individuals, subGroups := GetMembersCronJobDataType(members)
 	for _, selectedGroupID := range groupsToMoveIn {
-		// //* Get group data
-		// groupData, err := GetGroupIntegrationsCronJob(groupID, companyID)
-		// if err != nil {
-		// 	return err
-		// }
-
-		err := AddIndividualMembersCronJobHandler(selectedGroupID, companyID, userID, "", individuals)
+		err := AddIndividualMembersCronJobHandler(selectedGroupID, companyID, userID, "", individuals, true)
 		if err != nil {
 			return err
 		}
 
-		err = AddSubGroupsCronJobHandler(companyID, selectedGroupID, userID, subGroups)
+		err = AddSubGroupsCronJobHandler(companyID, selectedGroupID, userID, subGroups, true) // Add true for skipLogging
 		if err != nil {
 			return err
+		}
+
+		if !skipLogging {
+			// Get source group name
+			sourceGroup, errSource := GetGroupByID(groupID)
+			if errSource != nil {
+				return errSource
+			}
+
+			// Get destination group name
+			destGroup, errDest := GetGroupByID(selectedGroupID)
+			if errDest != nil {
+				return errDest
+			}
+
+			var logInfoUsers []models.LogModuleParams
+			for _, member := range members {
+				logInfoUsers = append(logInfoUsers, models.LogModuleParams{
+					ID:   member.MemberID,
+					Type: member.MemberType,
+				})
+			}
+
+			companyLog := models.Logs{
+				CompanyID: companyID,
+				UserID:    userID,
+				LogAction: constants.LOG_ACTION_MOVE_GROUP_MEMBERS,
+				LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
+				LogInfo: &models.LogInformation{
+					Users: logInfoUsers,
+					SourceGroup: &models.LogModuleParams{
+						ID:   groupID,
+						Name: sourceGroup.GroupName,
+					},
+					DestinationGroup: &models.LogModuleParams{
+						ID:   selectedGroupID,
+						Name: destGroup.GroupName,
+					},
+				},
+			}
+
+			groupLog := models.Logs{
+				GroupID:   selectedGroupID,
+				UserID:    userID,
+				LogAction: constants.LOG_ACTION_MOVE_GROUP_MEMBERS,
+				LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
+				LogInfo: &models.LogInformation{
+					Users: logInfoUsers,
+					SourceGroup: &models.LogModuleParams{
+						ID:   groupID,
+						Name: sourceGroup.GroupName,
+					},
+					DestinationGroup: &models.LogModuleParams{
+						ID:   selectedGroupID,
+						Name: destGroup.GroupName,
+					},
+				},
+			}
+
+			var errorMessages []string
+
+			_, err = ops.InsertLog(companyLog)
+			if err != nil {
+				errorMessages = append(errorMessages, "Error while creating company logs for moving members")
+			}
+
+			_, err = ops.InsertLog(groupLog)
+			if err != nil {
+				errorMessages = append(errorMessages, "Error while creating group logs for moving members")
+			}
+
+			if len(errorMessages) > 0 {
+				return errors.New(strings.Join(errorMessages, ", "))
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -2304,12 +2373,12 @@ func ExecuteAddMembersCronJob() error {
 			}
 
 			//* Save individual members
-			err := AddIndividualMembersCronJobHandler(cronJob.GroupID, cronJob.CompanyID, cronJob.CurrentUserID, cronJob.Type, individualsData)
+			err := AddIndividualMembersCronJobHandler(cronJob.GroupID, cronJob.CompanyID, cronJob.CurrentUserID, cronJob.Type, individualsData, false)
 			if err != nil {
 				cronJobErrors = append(cronJobErrors, err)
 			}
 			//* Save sub groups
-			err = AddSubGroupsCronJobHandler(cronJob.CompanyID, cronJob.GroupID, cronJob.CurrentUserID, subGroupsData)
+			err = AddSubGroupsCronJobHandler(cronJob.CompanyID, cronJob.GroupID, cronJob.CurrentUserID, subGroupsData, false) // Added false for skipLogging
 			if err != nil {
 				cronJobErrors = append(cronJobErrors, err)
 			}
@@ -2339,7 +2408,7 @@ func ExecuteRemoveMembersCronJob() error {
 	var cronJobErrors []error
 	for _, cronJob := range removeMembersCronJob {
 		if cronJob.Status == constants.ITEM_STATUS_PENDING && cronJob.Type == constants.JOB_REMOVE_GROUP_MEMBERS {
-			err := RemoveMembersCronJobHandler(cronJob.GroupID, cronJob.CompanyID, cronJob.CurrentUserID, cronJob.Members)
+			err := RemoveMembersCronJobHandler(cronJob.GroupID, cronJob.CompanyID, cronJob.CurrentUserID, cronJob.Members, false) // Added false for skipLogging
 			if err != nil {
 				return err
 			}
@@ -2350,7 +2419,6 @@ func ExecuteRemoveMembersCronJob() error {
 				cronJobErrors = append(cronJobErrors, err)
 			}
 		}
-
 	}
 	log.Println(cronJobErrors)
 	return nil
@@ -2401,7 +2469,7 @@ func GetMembersCronJobDataType(members []models.MemberCronJobData) ([]models.Mem
 	return individuals, subGroups
 }
 
-func RemoveMembersCronJobHandler(groupID, companyID, userID string, members []models.MemberCronJobData) error {
+func RemoveMembersCronJobHandler(groupID, companyID, userID string, members []models.MemberCronJobData, skipLogging bool) error {
 	//* Get group integrations and remove members to connected applications
 	group, err := GetGroupIntegrationsCronJob(groupID, companyID)
 	if err != nil {
@@ -2435,10 +2503,7 @@ func RemoveMembersCronJobHandler(groupID, companyID, userID string, members []mo
 	}
 
 	logSearchKey := group.GroupName + " "
-
 	var departmentMembersToRemove []models.DepartmentMember
-
-	//prepare for deleting -original code heere
 	var recipients []mail.Recipient
 
 	for _, member := range members {
@@ -2460,7 +2525,6 @@ func RemoveMembersCronJobHandler(groupID, companyID, userID string, members []mo
 		}
 
 		_, err := app.SVC.DeleteItem(groupMember)
-		//error from aws
 		if err != nil {
 			return err
 		}
@@ -2508,112 +2572,89 @@ func RemoveMembersCronJobHandler(groupID, companyID, userID string, members []mo
 		Recipients: recipients,
 		Template:   "notify_group_member.html",
 	})
-	// REMOVE DEPARTMENT MEMBERS END
 
-	// generate log
-	var logs []models.Logs
-	// message: GroupX has been deleted by UserX
-	var deletedGroupMembers []models.LogModuleParams
-	for _, m := range members {
-		deletedGroupMembers = append(deletedGroupMembers, models.LogModuleParams{
-			ID: m.MemberID,
-		})
-	}
+	// Only create logs if skipLogging is false
+	if !skipLogging {
+		var logInfoUsers []models.LogModuleParams
+		for _, member := range members {
+			logInfoUsers = append(logInfoUsers, models.LogModuleParams{
+				ID: member.MemberID,
+			})
+		}
 
-	hasGroup := false
-	var logInfoUsers []models.LogModuleParams
-	for _, member := range members {
-		// CHECK IF THE MEMBER HAVE OTHER GROUP
-		userGroups, err := GetUserCompanyGroups(companyID, member.MemberID)
+		companyLog := models.Logs{
+			CompanyID: companyID,
+			UserID:    userID,
+			LogAction: constants.LOG_ACTION_REMOVE_INDIVIDUAL_MEMBERS,
+			LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
+			LogInfo: &models.LogInformation{
+				Users: logInfoUsers,
+				Group: &models.LogModuleParams{
+					ID: groupID,
+				},
+			},
+		}
+
+		groupLog := models.Logs{
+			GroupID:   groupID,
+			UserID:    userID,
+			LogAction: constants.LOG_ACTION_REMOVE_INDIVIDUAL_MEMBERS,
+			LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
+			LogInfo: &models.LogInformation{
+				Users: logInfoUsers,
+				Group: &models.LogModuleParams{
+					ID: groupID,
+				},
+			},
+		}
+
+		var errorMessages []string
+
+		companyLogID, err := ops.InsertLog(companyLog)
 		if err != nil {
-			return errors.New("something went wrong with group member groups")
+			errorMessages = append(errorMessages, "error while creating company log")
 		}
 
-		if len(userGroups) > 0 {
-			hasGroup = true
-		}
-
-		// need users info for logs/activities to display
-		logInfoUsers = append(logInfoUsers, models.LogModuleParams{
-			ID: member.MemberID,
-		})
-	}
-
-	logs = append(logs, models.Logs{
-		CompanyID: companyID,
-		UserID:    userID,
-		LogAction: constants.LOG_ACTION_REMOVE_INDIVIDUAL_MEMBERS,
-		LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
-		LogInfo: &models.LogInformation{
-			Group: &models.LogModuleParams{
-				ID: groupID,
-			},
-			GroupMembers: deletedGroupMembers,
-			User: &models.LogModuleParams{
-				ID: userID,
-			},
-			Users: logInfoUsers,
-		},
-	})
-
-	companyLog := models.Logs{
-		CompanyID: companyID,
-		UserID:    userID,
-		LogAction: constants.LOG_ACTION_REMOVE_INDIVIDUAL_MEMBERS,
-		LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
-		LogInfo: &models.LogInformation{
-			Users: logInfoUsers,
-			Group: &models.LogModuleParams{
-				ID: groupID,
-			},
-		},
-	}
-
-	groupLog := models.Logs{
-		GroupID:   groupID,
-		UserID:    userID,
-		LogAction: constants.LOG_ACTION_REMOVE_INDIVIDUAL_MEMBERS,
-		LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
-		LogInfo: &models.LogInformation{
-			Users: logInfoUsers,
-			Group: &models.LogModuleParams{
-				ID: groupID,
-			},
-		},
-	}
-
-	var errorMessages []string
-
-	companyLogID, err := ops.InsertLog(companyLog)
-	if err != nil {
-		errorMessages = append(errorMessages, "error while creating company log")
-	}
-
-	groupLogID, err := ops.InsertLog(groupLog)
-	if err != nil {
-		errorMessages = append(errorMessages, "error while creating group log")
-	}
-	_ = groupLogID
-
-	// check if the user have no group, then return data with action items
-	if !hasGroup {
-		actionItem := models.ActionItem{
-			CompanyID:      companyID,
-			LogID:          companyLogID,
-			ActionItemType: "ADD_REMOVE_USER",
-			SearchKey:      logSearchKey,
-		}
-		actionItemID, err := ops.CreateActionItem(actionItem)
+		_, err = ops.InsertLog(groupLog)
 		if err != nil {
-			errorMessages = append(errorMessages, "error while creating action items")
+			errorMessages = append(errorMessages, "error while creating group log")
 		}
-		_ = actionItemID
+
+		// Check if user has other groups and create action item if needed
+		hasGroup := false
+		for _, member := range members {
+			userGroups, err := GetUserCompanyGroups(companyID, member.MemberID)
+			if err != nil {
+				return errors.New("something went wrong with group member groups")
+			}
+			if len(userGroups) > 0 {
+				hasGroup = true
+				break
+			}
+		}
+
+		if !hasGroup {
+			actionItem := models.ActionItem{
+				CompanyID:      companyID,
+				LogID:          companyLogID,
+				ActionItemType: "ADD_REMOVE_USER",
+				SearchKey:      logSearchKey,
+			}
+			_, err := ops.CreateActionItem(actionItem)
+			if err != nil {
+				errorMessages = append(errorMessages, "error while creating action items")
+			}
+		}
+
+		if len(errorMessages) > 0 {
+			return errors.New(strings.Join(errorMessages, ", "))
+		}
 	}
 
 	return nil
 }
 
-func AddIndividualMembersCronJobHandler(groupID, companyID, userID, cronJobType string, membersData []models.MemberCronJobData) error {
+func AddIndividualMembersCronJobHandler(groupID, companyID, userID, cronJobType string, membersData []models.MemberCronJobData, skipLogging bool) error {
 	group, err := GetGroupByID(groupID)
 	if err != nil {
 		return err
@@ -2665,39 +2706,17 @@ func AddIndividualMembersCronJobHandler(groupID, companyID, userID, cronJobType 
 	for _, member := range members {
 		inputRequest = append(inputRequest, &dynamodb.WriteRequest{PutRequest: &dynamodb.PutRequest{
 			Item: map[string]*dynamodb.AttributeValue{
-				"PK": {
-					S: aws.String(member.PK),
-				},
-				"SK": {
-					S: aws.String(member.SK),
-				},
-				"CompanyID": {
-					S: aws.String(member.CompanyID),
-				},
-				"GroupID": {
-					S: aws.String(member.GroupID),
-				},
-				"MemberID": {
-					S: aws.String(member.MemberID),
-				},
-				"Status": {
-					S: aws.String(member.Status),
-				},
-				"MemberType": {
-					S: aws.String(member.MemberType),
-				},
-				"MemberRole": {
-					S: aws.String(member.MemberRole),
-				},
-				"CreatedAt": {
-					S: aws.String(member.CreatedAt),
-				},
-				"UpdatedAt": {
-					S: aws.String(member.UpdatedAt),
-				},
-				"Type": {
-					S: aws.String(member.Type),
-				},
+				"PK":         {S: aws.String(member.PK)},
+				"SK":         {S: aws.String(member.SK)},
+				"CompanyID":  {S: aws.String(member.CompanyID)},
+				"GroupID":    {S: aws.String(member.GroupID)},
+				"MemberID":   {S: aws.String(member.MemberID)},
+				"Status":     {S: aws.String(member.Status)},
+				"MemberType": {S: aws.String(member.MemberType)},
+				"MemberRole": {S: aws.String(member.MemberRole)},
+				"CreatedAt":  {S: aws.String(member.CreatedAt)},
+				"UpdatedAt":  {S: aws.String(member.UpdatedAt)},
+				"Type":       {S: aws.String(member.Type)},
 			},
 		}})
 	}
@@ -2720,114 +2739,109 @@ func AddIndividualMembersCronJobHandler(groupID, companyID, userID, cronJobType 
 		return errors.New("error adding users to department")
 	}
 
-	logSearchKey := group.GroupName + " "
-	var logInfoUsers []models.LogModuleParams
-	for _, member := range members {
-		u := getUserInTmp(member.MemberID)
-		logSearchKey += u.FirstName + " " + u.LastName + " "
-		logInfoUsers = append(logInfoUsers, models.LogModuleParams{
-			ID: member.MemberID,
-		})
-	}
-
-	companyLog := models.Logs{
-		CompanyID: companyID,
-		UserID:    userID,
-		LogAction: constants.LOG_ACTION_ADD_GROUP_MEMBERS,
-		LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
-		LogInfo: &models.LogInformation{
-			Users: logInfoUsers,
-			Group: &models.LogModuleParams{
-				ID: groupID,
-			},
-		},
-	}
-
-	groupLog := models.Logs{
-		GroupID:   groupID,
-		UserID:    userID,
-		LogAction: constants.LOG_ACTION_ADD_GROUP_MEMBERS,
-		LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
-		LogInfo: &models.LogInformation{
-			Users: logInfoUsers,
-			Group: &models.LogModuleParams{
-				ID: groupID,
-			},
-		},
-	}
-
-	var errorMessages []string
-
-	companyLogID, err := ops.InsertLog(companyLog)
-	if err != nil {
-		errorMessages = append(errorMessages, "error while creating company logs")
-	}
-
-	groupLogID, err := ops.InsertLog(groupLog)
-	if err != nil {
-		errorMessages = append(errorMessages, "error while creating group logs")
-	}
-	_ = groupLogID
-
-	groupList, err := GetGroupList(companyID)
-	if err != nil {
-		return err
-	}
-
-	output := len(groupList)
-
-	var actionItem models.ActionItem
-	// generate action items?
-	if output >= 2 {
-		actionItem = models.ActionItem{
-			CompanyID:      companyID,
-			LogID:          companyLogID,
-			ActionItemType: "ADD_USERS_TO_GROUP",
-			SearchKey:      logSearchKey,
+	// Only create logs if skipLogging is false
+	if !skipLogging {
+		logSearchKey := group.GroupName + " "
+		var logInfoUsers []models.LogModuleParams
+		for _, member := range members {
+			u := getUserInTmp(member.MemberID)
+			logSearchKey += u.FirstName + " " + u.LastName + " "
+			logInfoUsers = append(logInfoUsers, models.LogModuleParams{
+				ID: member.MemberID,
+			})
 		}
 
-	}
-
-	actionItemID, err := ops.CreateActionItem(actionItem)
-	if err != nil {
-		return errors.New("error while creating action items")
-	}
-
-	_ = actionItemID
-
-	//* Google Config
-	config, err := googleoperations.GetGoogleConfig()
-	if err != nil {
-		return err
-	}
-
-	groupIntegrationOps := &ops.GroupIntegraitonOperations{Config: config}
-
-	//* Add group members to connected integrations
-	for _, member := range members {
-		//* Get individual's data
-		user, userErr := ops.GetUserByIDNew(member.MemberID)
-		if userErr != nil {
-			return errors.New(strings.ToLower(userErr.Message))
+		companyLog := models.Logs{
+			CompanyID: companyID,
+			UserID:    userID,
+			LogAction: constants.LOG_ACTION_ADD_GROUP_MEMBERS,
+			LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
+			LogInfo: &models.LogInformation{
+				Users: logInfoUsers,
+				Group: &models.LogModuleParams{
+					ID: groupID,
+				},
+			},
 		}
-		err := groupIntegrationOps.AddMemberToConnectedSubApplications(companyID, user.Email, user.UserID, user.FirstName, user.LastName, member.MemberID, member.MemberType, group)
+
+		groupLog := models.Logs{
+			GroupID:   groupID,
+			UserID:    userID,
+			LogAction: constants.LOG_ACTION_ADD_GROUP_MEMBERS,
+			LogType:   constants.ENTITY_TYPE_GROUP_MEMBER,
+			LogInfo: &models.LogInformation{
+				Users: logInfoUsers,
+				Group: &models.LogModuleParams{
+					ID: groupID,
+				},
+			},
+		}
+
+		var errorMessages []string
+
+		companyLogID, err := ops.InsertLog(companyLog)
 		if err != nil {
-			return errors.New(err.Message)
+			errorMessages = append(errorMessages, "error while creating company logs")
 		}
 
-	}
+		_, err = ops.InsertLog(groupLog)
+		if err != nil {
+			errorMessages = append(errorMessages, "error while creating group logs")
+		}
 
-	//* Send email for added members
-	jobs.Now(mail.SendEmail{
-		Subject:    "You have been added to a group",
-		Recipients: recipients,
-		Template:   "notify_group_member.html",
-	})
+		if len(errorMessages) > 0 {
+			return errors.New(strings.Join(errorMessages, ", "))
+		}
+
+		groupList, err := GetGroupList(companyID)
+		if err != nil {
+			return err
+		}
+
+		output := len(groupList)
+
+		// generate action items?
+		if output >= 2 {
+			actionItem := models.ActionItem{
+				CompanyID:      companyID,
+				LogID:          companyLogID,
+				ActionItemType: "ADD_USERS_TO_GROUP",
+				SearchKey:      logSearchKey,
+			}
+
+			actionItemID, err := ops.CreateActionItem(actionItem)
+			if err != nil {
+				return errors.New("error while creating action items")
+			}
+			_ = actionItemID
+		}
+
+		//* Google Config
+		config, err := googleoperations.GetGoogleConfig()
+		if err != nil {
+			return err
+		}
+
+		groupIntegrationOps := &ops.GroupIntegraitonOperations{Config: config}
+
+		//* Add group members to connected integrations
+		for _, member := range members {
+			//* Get individual's data
+			user, userErr := ops.GetUserByIDNew(member.MemberID)
+			if userErr != nil {
+				return errors.New(strings.ToLower(userErr.Message))
+			}
+			err := groupIntegrationOps.AddMemberToConnectedSubApplications(companyID, user.Email, user.UserID, user.FirstName, user.LastName, member.MemberID, member.MemberType, group)
+			if err != nil {
+				return errors.New(err.Message)
+			}
+		}
+	}
 
 	return nil
 }
 
-func AddSubGroupsCronJobHandler(companyID, groupID, userID string, membersData []models.MemberCronJobData) error {
+func AddSubGroupsCronJobHandler(companyID, groupID, userID string, membersData []models.MemberCronJobData, skipLogging bool) error {
 	group, err := GetGroupByID(groupID)
 	if err != nil {
 		return err
