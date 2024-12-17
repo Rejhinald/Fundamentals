@@ -56,7 +56,6 @@ import { ROLE_CONSTANTS } from '../../../../constants/Role'
 import InformationTooltip from '../../../../components/tooltips/information'
 import { Dispatch } from 'redux'
 import { setShowEditRoleModal } from '../../../../redux/local-states/roles/action'
-import { UserType } from '../../../../redux/users/interface'
 
 interface IEditModal {
     show: boolean
@@ -72,12 +71,10 @@ interface IEditModal {
     isPermissionSelected: (rolePermission: string) => boolean
     isAllPermissionCategorySelected: (category: string) => boolean
     isChecked: boolean
-    disabledButton: (value: boolean) => void
-    userPermissions: string[]
-    currentUser: string
-    setIsUpdating: (val: boolean) => void
-    userType?: string
-    users?: UserType[]
+    disabledButton: (value: boolean) => void,
+    userPermissions: string[],
+    currentUser: string,
+    setIsUpdating: (val: boolean) => void,
 }
 
 const EditModal = ({
@@ -98,7 +95,6 @@ const EditModal = ({
     userPermissions,
     currentUser,
     setIsUpdating,
-    users
 }: IEditModal) => {
     const userPemissionsDefault: number = selectedPermissions?.length;
     const dispatch: Dispatch = useDispatch()
@@ -322,8 +318,6 @@ const EditModal = ({
                                         <InformationTooltip>To be able to remove users as Company Admin you must have that role.</InformationTooltip> :
                                         Formik.values.selectedUsers.length === 1 ?
                                         <InformationTooltip>You are unable to remove yourself with the Company Admin role because your company requires at least one.</InformationTooltip> 
-                                        : !assignedUsers.some(user => user.userRole?.includes("COMPANY_OWNER")) && assignedUsers.some(user => user.userRole?.includes("COMPANY_OWNER")) ?
-                                        <InformationTooltip>Company Owners cannot be removed from Company Admin role as they require administrative access.</InformationTooltip>
                                         : <></>
                                     : <></>
                                 }
@@ -340,10 +334,6 @@ const EditModal = ({
                                     switch (actionMeta.action) {
                                         case 'remove-value':
                                         case 'pop-value':
-                                            // If trying to remove a Company Owner
-                                            if (actionMeta.removedValue.UserType === "COMPANY_OWNER") {
-                                                return;
-                                            }
                                             if (actionMeta.removedValue.isFixed && role.RoleName === ROLE_CONSTANTS.COMPANY_ADMIN_ROLE) {
                                                 return;
                                             }
@@ -351,13 +341,9 @@ const EditModal = ({
                                         case 'clear':
                                             option = usersData.filter((v: any) => {
                                                 if (role.RoleName === ROLE_CONSTANTS.COMPANY_ADMIN_ROLE) {
-                                                    // Keep Company Owners in the list
-                                                    if (v?.UserType === "COMPANY_OWNER") {
-                                                        return true;
-                                                    }
-                                                    return v?.UserType === undefined;
+                                                    return v?.userRole === undefined
                                                 } else {
-                                                    return "";
+                                                    return ""
                                                 }
                                             });
                                             break;

@@ -362,11 +362,10 @@ const PermissionsModule: React.FC<PropsFromRedux> = (props) => {
         const formattedAssignedUser = [...tmpCurrentUser, ...tmpAssignedUsers]?.map(u => ({
             label: u.FirstName + " " + u.LastName,
             value: u.UserID,
-            isFixed: (u.UserType === "COMPANY_OWNER") || 
-                (ROLE_CONSTANTS.COMPANY_ADMIN_ROLE === role.RoleName && u.UserID === user.UserID),
-            userType: u.UserType
+            isFixed: ROLE_CONSTANTS.COMPANY_ADMIN_ROLE === role.RoleName && (u.UserID === user.UserID  || user?.Permissions?.length < 26),
+            userRole: u.UserRole,
         })) || [];
-    
+
         await SetAssignedUsers(formattedAssignedUser)
 
         await SetSelectedDepartmentCounter(existingDepartment.length)
@@ -644,13 +643,11 @@ const PermissionsModule: React.FC<PropsFromRedux> = (props) => {
 
     useEffect(() => {
         if (users.length) {
-            console.log('All Users Data:', users);
             const formattedUser = users?.map(u => ({
                 label: u.FirstName + " " + u.LastName,
                 value: u.UserID,
-                isFixed: u.UserType === "COMPANY_OWNER" ||  // Changed to use UserType check
-                        u.UserID === user.UserID,
-                UserType: u.UserType  // Note: Changed to uppercase U in UserType
+                isFixed: u.UserID === user.UserID,
+                userRole: u.UserRole,
             })) || [];
             SetUsersData(formattedUser)
         }
@@ -734,8 +731,6 @@ const PermissionsModule: React.FC<PropsFromRedux> = (props) => {
                     userPermissions={user?.Permissions}
                     currentUser={user?.UserID}
                     setIsUpdating={setIsUpdating}
-                    userType={user?.UserType}
-                    users={users}  
                 />
                 )
             }
