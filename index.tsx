@@ -137,6 +137,15 @@ const NotificationItem: React.FC<NotificationItemProps> = (props) => {
     }
   }
   
+  const handleAcceptCreateAccount = () => {
+    onHideNotification();
+    history.push(`/users/${notification?.NotificationContent?.RequesterUserID}?tab=accounts`);
+  }
+
+  // Function to reject the account creation request
+  const handleRejectCreateAccount = async () => {
+  };
+  
   return (
     <li className={`notif flex-column ${!notification.Seen ? "unread" : ""}`}>
       <div className="d-flex notif__content">
@@ -183,6 +192,12 @@ const NotificationItem: React.FC<NotificationItemProps> = (props) => {
                 <Button variant="primary" className="px-5 py-2 rounded" onClick={redirectToIntegrationRemoveGroup}>Go to Integration</Button>
               </div>
             )}
+          {notification?.NotificationType === 'REQUEST_TO_CREATE_ACCOUNT' && (
+            <div className="d-flex justify-content-end">
+              <Button variant="link" className="px-5 py-2 rounded" onClick={handleRejectCreateAccount}>Reject</Button>
+              <Button variant="primary" className="px-5 py-2 rounded" onClick={handleAcceptCreateAccount}>Accept</Button>
+            </div>
+          )}
         </>
       )}
 

@@ -1,0 +1,1008 @@
+GetLicenses
+# Routes Config
+#
+# This file defines all application routes (Higher priority routes first)
+#
+
+module:testrunner
+module:jobs
+
+
+GET     /                                    App.Index
+GET     /ping                                App.Ping
+GET     /gettables                           App.GetTables
+GET     /upload                              App.GetImageTest
+POST    /upload                              App.UploadImageTest
+
+# Auth
+POST    /signin                              AuthController.SignIn
+POST    /signup                              AuthController.SignUp
+PUT     /resend_activation                   AuthController.ResendEmailActivation
+PUT     /change_password                     AuthController.ChangePassword
+PUT     /users/activate/                     AuthController.ActivateUser
+POST    /request_password_reset              AuthController.RequestPasswordReset
+POST    /reset_password                      AuthController.ResetPassword
+PUT     /signout                             AuthController.SignOut
+POST    /check_password                      AuthController.CheckUserPassword
+POST    /resend_email_reset_password         AuthController.ResendEmailResetPassword
+GET     /token_validity                      AuthController.TokenValidityChecker
+POST    /token_login                         AuthController.TokenLogin
+
+GET /signin/google                           AuthController.GetGoogleAuthCodeURL
+POST /signin/google                           AuthController.SignInUserWithGoogle
+
+GET /signin/ms_office                        AuthController.GetMicrosoftAuthCodeURL
+POST /signin/ms_office                       AuthController.SignInUserWithMicrosoft
+
+POST /migrate                                AuthController.MigrateOldAccounts
+
+# Action Items
+GET     /action_items                        ActionItemController.GetCompanyActionItems
+DELETE  /action_items/:actionItemID          ActionItemController.DeleteActionItem
+POST    /action_items                        ActionItemController.CreateActionItem
+<!-- POST    /action_items/users                  ActionItemController.CreateInviteRemoveUserActionItem -->
+
+# People
+GET     /users/all                           UserController.GetAllUsers
+# change users/me to /me
+GET     /users/me/                           UserController.GetCurrentUser
+GET     /users/:userID/                      UserController.GetUser
+GET     /users                               UserController.GetUsers
+POST    /users                               UserController.AddUsersToCompany
+POST    /users/new                           UserController.AddUserNew
+PUT     /users/:userID                       UserController.UpdateUser
+
+PATCH   /users/profile/photo/:userID         UserController.UpdateUserPhoto
+PUT     /users/profile/:userID               UserController.UpdateUserProfile
+PUT     /users/profile/updateinfo/:userID    UserController.UpdateUserInfo 
+PUT     /users/profile/account/:userID       UserController.SaveUserIntegrationAccounts
+POST    /users/accounts/:userID              UserController.SaveUsersIntegrationAccounts
+
+GET     /users/groups/count                  UserController.GetUserActiveConnectedGroup
+
+PATCH   /users/status                        UserController.UpdateUserStatus
+PATCH   /user/permissions/                   UserController.UpdateUserRole
+PATCH   /users/email/:userID                 UserController.UpdateUserEmail
+POST    /users/groups/clone/:userID          UserController.CloneUserGroups
+POST    /users/cron_job                      UserController.CreateCronJobUser
+POST    /users/check-email                   UserController.CheckEmailDuplicate
+
+WS      /users/company/add                   UserWebsocket.AddCompanyUserSocket
+WS      /users/company/remove                UserWebsocket.RemoveCompanyUserSocket
+WS      /users/company/restore               UserWebsocket.RestoreCompanyUserSocket
+WS      /users/company/delete               UserWebsocket.DeleteCompanyUserSocket
+WS      /users/company/remove/integration   UserWebsocket.RemoveUserIntegrationSocket
+# WS      /users/remove                UserWebsocket.RemoveCompanyUserNewSocket
+WS      /users/remove                UserWebsocket.RemoveCompanyUserIntegrationAccounts
+
+GET     /admin/users                        AdminUserController.GetUsers
+GET     /admin/users/:companyID/:userID     AdminUserController.GetUserInfo
+PUT     /admin/users/change_password/:userID         AdminUserController.UpdatePassword
+PUT     /admin/users/:companyID/:userID     AdminUserController.UpdateUserInfo
+
+
+
+# PUT     /users/token/google                  UserController.SaveUserGoogleTokens
+PUT     /users/token/jira                    UserController.SaveUserJiraTokens
+PUT     /users/token/jira/remove             UserController.RemoveUserJiraTokens
+
+POST    /users/integration/account/new       UserController.IntegrationEmail
+POST    /users/skip-wizard/:companyID        UserController.SkipSetupWizard
+PATCH   /users/finishtour                    UserController.FinishTour
+PATCH   /users/confirm-verification          UserController.ConfirmVerification
+DELETE   /users/permanently-delete           UserController.PermanentlyDeleteUsers
+DELETE  /users/:userID                       UserController.RemoveUser
+
+DELETE /users/remove/multiple                         UserController.RemoveMultipleUsers
+POST    /users/restore                                UserController.RestoreUsers
+POST    /users/manage-access                          UserController.ManageAccess
+POST    /users/manage-access/request-account          UserController.RequestCreationOfAccount
+POST    /users/manage-access/request-match-account    UserController.RequestMatchingOfAccount
+               
+POST    /users/job                           UserController.CreateRemoveUserJob
+
+# Departments
+GET             /departments                                                                DepartmentController.GetDepartments
+PUT             /departments/bookmark/:departmentID                                         DepartmentController.BookmarkDepartment
+DELETE          /departments/bookmark/:departmentID                                         DepartmentController.RemoveBookmarkDepartment
+GET             /departments/companies/:companyID/count                                     DepartmentController.GetDepartmentCountByCompany
+GET             /departments/:departmentID                                                  DepartmentController.GetDepartment
+POST            /departments                                                                DepartmentController.CreateDepartment
+PUT             /departments/:departmentID                                                  DepartmentController.UpdateDepartment
+DELETE          /departments/:departmentID                                                  DepartmentController.DeleteDepartment
+GET             /departments/:departmentID/groups                                           DepartmentController.GetDepartmentGroups
+PUT             /departments/:departmentID/bookmark/groups/:groupID                         DepartmentController.BookmarkDepartmentGroup
+DELETE          /departments/:departmentID/bookmark/groups/:groupID                         DepartmentController.RemoveBookmarkDepartmentGroup
+
+
+# Logs
+GET     /logs/                               LogController.GetLogs
+GET     /logs/:logID                         LogController.GetLog
+PATCH   /logs/                               LogController.DeleteLogs
+GET     /new/logs                            LogController.NewGetLogs
+
+# Group 
+GET     /groups/profile                      GroupController.GetCompanyGroupByID 
+GET     /groups/profile/count                GroupController.GetGroupMembersInGroupCount
+GET     /groups/                             GroupController.GetGroupsByDepartment
+GET     /groups/all                          GroupController.GetAll
+GET     /groups/company/                     GroupController.GetCompanyGroups
+GET     /groups/companies/:companyID/count   GroupController.GetGroupCountByCompany
+GET     /groups/company/count                GroupController.GetAllGroupsOfCompanyCount
+GET     /groups/:groupID/department          GroupController.GetGroupDepartment
+GET     /groups/:groupID/applications        GroupController.GetGroupApplications
+POST    /groups/                             GroupController.CreateGroup
+POST    /groups/bookmark/add                 GroupController.AddBookmarkGroup
+POST    /groups/bookmark/delete              GroupController.DeleteBookmarkGroup
+POST    /groups/delete                       GroupController.DeleteGroup
+POST    /groups/clone/:groupID               GroupController.CloneGroup
+PUT     /groups/sub_integrations             GroupController.SaveConnectedItems
+DELETE  /groups/sub_integrations/:groupID    GroupController.RemoveGroupSubIntegrations
+PUT     /groups/:groupID                     GroupController.UpdateGroup
+PUT     /groups/:groupID/member/:itemID      GroupController.UpdateGroupMember
+PUT     /groups/:groupID/connect_integration GroupController.ConnectIntegration
+POST    /groups/add_members/individual       GroupController.AddIndividualsAsMembers
+POST    /groups/add_members/group            GroupController.AddGroupsAsMembers
+
+GET     /groups/integrations/:groupID        GroupController.GetGroupIntegrations
+
+POST    /groups/merge/                       GroupController.MergeGroup
+POST    /groups/branch/:groupID              GroupController.BranchGroup
+POST    /groups/members/add                  GroupController.AddToGroup
+POST    /groups/members/request              GroupController.RequestToJoinGroup
+POST    /groups/members/delete               GroupController.DeleteMember
+POST    /groups/integrations/add             GroupController.AddIntegrations
+POST    /groups/integrations/delete          GroupController.DeleteIntegrations
+POST    /groups/integrations/delete-request  GroupController.DeleteIntegrationsRequest
+POST    /groups/integrations/connect         GroupController.ConnectIntegrationToGroups
+
+GET     /groups/suggested/:groupID           GroupController.GetSuggestedGroupsFromGroup
+POST    /groups/members/bulk/add             GroupController.AddUsersToGroups
+
+GET     /groups/:groupID/members             GroupController.GetGroupMembers
+
+DELETE  /groups/:groupID/group_members       GroupController.DeleteGroupMembers
+POST    /groups/members/cron_job             GroupController.CreateCronJobGroupMembers
+POST    /groups/members/move                 GroupController.MoveMembersToAnotherGroups
+
+POST    /groups/import/external/google       GroupController.ImportExternalGoogleGroup
+<!-- POST    /groups/members/add/multiple         GroupController.AddMultipleUsersToMultipleGroups -->
+
+POST    /groups/copy/:groupID                GroupController.CopyGroupIntegrations
+# Company
+GET     /companies                           CompanyController.GetAllCompanies
+GET     /companies/user/:userID              CompanyController.GetUserCompanies
+GET     /companies/users/:userID/count       CompanyController.GetCompanyCount
+GET     /companies/:companyID                CompanyController.GetCompany
+GET     /companies/:companyID/users/count    CompanyController.GetCompanyUsersCount
+PUT     /companies/:companyID                CompanyController.UpdateCompany
+PUT     /companies/:companyID                CompanyController.UpdateCompanyInfo
+PATCH   /companies/logo/:companyID           CompanyController.UpdateCompanyLogo
+POST    /companies                           CompanyController.AddCompany
+PATCH   /companies/active/:userID            CompanyController.UpdateUserActiveCompany 
+GET     /companies/active/:userID            CompanyController.GetActiveCompany
+POST    /companies/invite                    CompanyController.InviteCompanyAdmin
+POST    /companies/create                    CompanyController.CreateCompanyWithDepAndSubscription
+POST    /companies/sso                       CompanyController.SSOAddCompany
+GET     /companies/:companyID/users          CompanyController.GetCompanyUsers
+GET     /companies/:companyID/groups         CompanyController.GetCompanyGroups
+POST    /companies/:companyID/settings/enable-user-access   CompanyController.EnableUserAccess
+
+GET     /admin/companies                     AdminCompanyController.GetCompanies
+GET     /admin/companies/:companyID          AdminCompanyController.GetCompanyInfo
+PUT     /admin/companies/:companyID          AdminCompanyController.UpdateCompanyInfo
+
+# Roles
+GET     /role/                               RoleController.GetRole
+GET     /roles/                              RoleController.GetAllRoles
+GET     /role/user                           RoleController.RoleInUsed
+PUT     /roles/update                        RoleController.UpdateRole
+POST    /roles/                              RoleController.CreateRole
+POST    /roles/assign                        RoleController.AssignRole
+POST    /roles/unassign                      RoleController.UnassignRole
+POST    /roles/delete                        RoleController.DeleteRole
+POST    /roles/request                       RoleController.RequestRoles
+
+GET     /admin/roles                         AdminRoleController.GetRoles
+POST    /admin/roles                         AdminRoleController.CreateRole
+PUT     /admin/roles                         AdminRoleController.UpdateRole
+
+# Permissions
+POST    /admin/permission-groups   AdminPermissionGroupController.CreatePermissionGroup
+POST    /admin/permissions        AdminPermissionGroupController.CreatePermission
+GET    /admin/permission-groups   AdminPermissionGroupController.GetPermissionGroup
+GET    /admin/permission-groups/:permissionGroupID   AdminPermissionGroupController.GetPermissionGroupByID
+GET    /admin/permissions                            AdminPermissionGroupController.GetPermissions
+PUT    /admin/permission-groups/:permissionGroupID    AdminPermissionGroupController.UpdatePermissionGroup
+PUT    /admin/permissions/:permissionID               AdminPermissionGroupController.UpdatePermission
+DELETE    /admin/permission-groups/:permissionGroupID    AdminPermissionGroupController.DeletePermissionGroup
+DELETE    /admin/permissions/:permissionID            AdminPermissionGroupController.DeletePermission
+GET     /permissions/                        PermissionController.GetAllPermissions
+GET     /permission/                         PermissionController.GetPermission
+GET     /permissions/category/               PermissionController.GetPermissionByCategory
+                 
+
+# What's New
+GET     /whats-new/                          WhatsNewController.GetWhatsNewList
+
+GET     /whats-new/:whatsnewID               WhatsNewController.GetWhatsNewByID
+
+# Requests
+POST    /requests/:requestId/accept          RequestController.AcceptRequest
+POST    /requests/:requestId/reject          RequestController.RejectRequest
+
+# Integrations
+GET     /integrations/                                      IntegrationController.GetAllIntegrations
+GET     /integrations/slug/:integrationSlug                    IntegrationController.GetIntegrationBySlug
+GET     /admin/integrations                                 AdminIntegrationController.GetIntegrations
+# GET     /integrations/:integrationSlug                    IntegrationController.GetIntegrationBySlug
+GET     /integrations/:integrationID                        IntegrationController.GetIntegrationProfileByID
+GET     /integrations/company/:companyID                    IntegrationController.GetCompanyIntegrations
+GET     /integrations/companies/:companyID/count            IntegrationController.GetIntegrationCountByCompany
+POST    /integrations/connect                               IntegrationController.ConnectIntegrationToCompany
+POST    /integrations/disconnect                            IntegrationController.DisconnectIntegrationToCompany
+GET     /integrations/guide-done/:userID                    IntegrationController.GetDoneIntegrationGuides
+PUT     /integrations/guide-done/:integrationSlug           IntegrationController.UpdateDoneIntegrationGuide
+POST    /integrations/request                               IntegrationController.RequestIntegration
+GET     /integrations/uids/:integrationID                   IntegrationController.ListIntegrationUIDs
+POST    /integrations/uids/:integrationID/send-emails       IntegrationController.SendMapUIDEmails
+GET     /integrations/uids/:integrationID/users/:userID     IntegrationController.GetUserIntegrationUID
+PATCH   /integrations/uids/:integrationID                   IntegrationController.ChangeIntegrationUIDStatus
+POST    /integrations/uids/batch/:integrationID             IntegrationController.BatchMapIntegrationUID
+POST    /integrations/uids/batch/transfer                   IntegrationController.BatchIntegrationTransfer
+GET     /integrations/connected/groups/:integrationID       IntegrationController.ListConnectedGroupsInCompanyIntegration
+POST    /integrations/add                                   IntegrationController.AddIntegration 
+POST    /sub-integrations/add                               IntegrationController.AddSubIntegration
+GET     /integrations/:integrationID/groups                 IntegrationController.GetSortedConnectedGroupsByIntegration
+POST    /integrations/send-email-credentials                IntegrationController.SendEmailIntegrationCredentials
+POST    /integrations/allow-external-users                  IntegrationController.UpdateIntegrationExternalUsersAndDomain
+POST    /integrations/request-integrations-action           IntegrationController.RequestConnectDisconnectIntegration
+
+# Notifications
+GET     /notifications/me/                    NotificationController.GetCurrentUserNotifications
+PUT     /notifications/me/read_all            NotificationController.MarkAllAsRead
+POST    /admin/notifications/    AdminNotificationController.SendNotificationAdmin 
+PATCH   /notifications/seen/:notificationID   NotificationController.SeenNotification
+DELETE  /notifications/:notificationID       NotificationController.DeleteNotification
+
+GET     /all-notifications      NotificationController.GetAllNotifications
+
+GET     /notifications/pagination       NotificationController.GetUserNotifications
+
+# Help Center
+POST  /help-center/share-feedback     HelpCenterController.ShareFeedback
+
+# Subscription
+GET     /subscription                                       SubscriptionController.GetCompanySubscription
+GET     /subscription/members                               SubscriptionController.GetSubscriptionMember
+
+# Google Cloud
+GET    /google-cloud/auth                                               GoogleOAuthController.GetAuthCodeURL
+GET    /google-cloud/token                                              GoogleOAuthController.AuthorizationCodeToAccessToken
+GET    /google-cloud/people/me                                          GCloudPeopleController.GetUserInfo
+GET    /google-cloud/people/me/tokeninfo                                GCloudPeopleController.GetUserCustomerInfoByToken
+POST   /google-cloud/users                                              GoogleAdminController.CreateGoogleUser
+PUT    /google-cloud/users/reset-password                               GoogleAdminController.ResetGoogleUserPassword
+GET    /google-cloud/google-admin/users                                 GoogleAdminController.GetUsers
+GET    /google-cloud/google-admin/users/:email                          GoogleAdminController.GetUser
+GET    /google-cloud/google-admin/users/primary-email/:email            GoogleAdminController.GetUserPrimaryEmails
+DELETE /google-cloud/google-admin/users/:email                          GoogleAdminController.RemoveGoogleAccount
+POST   /google-cloud/google-admin/users/:userKey/restore-account        GoogleAdminController.RecoverGoogleAccount
+POST   /google-cloud/google-admin/users/restore-multiple-accounts       GoogleAdminController.RestoreMultipleAccounts
+GET    /google-cloud/google-admin/customer/:userId/orgunits             GoogleAdminController.GetOrgUnits
+# POST   /google-cloud/google-admin/users                               GoogleAdminController.CreateUser
+POST    /google-cloud/google-admin/import/groups                        GoogleAdminController.ImportGroups
+GET    /google-cloud/google-admin/groups                                GoogleAdminController.GetGroups
+DELETE /google-cloud/google-admin/groups/:groupKey                      GoogleAdminController.DeleteGroup
+POST   /google-cloud/google-admin/groups/connect/:email/:groupID        GoogleAdminController.ConnectGoogleAdminGroup
+POST   /google-cloud/google-admin/groups                                GoogleAdminController.CreateGroup
+POST   /google-cloud/google-admin/groups/import                         GoogleAdminController.ImportGWGroups
+WS     /google-cloud/google-admin/groups/import                         GoogleWebsocket.ImportGoogleGroupWebsocket
+
+PUT    /google-cloud/google-admin/groups/:groupKey                      GoogleAdminController.UpdateGroup
+POST   /google-cloud/google-admin/groups/members/import                 GoogleAdminController.ImportGWGroupMembers
+POST   /google-cloud/google-admin/groups/members/groups                 GoogleAdminController.AddGroupToGroups
+POST   /google-cloud/google-admin/groups/members/groups/delete                 GoogleAdminController.RemoveGroupToGroups #todo change method and route name
+POST   /google-cloud/google-admin/groups/members                        GoogleAdminController.AddUserToGroupsNew
+GET    /google-cloud/google-admin/groups/all                            GoogleAdminController.SelectAllGroupsMembers
+DELETE /google-cloud/google-admin/groups/connection/:groupKey           GoogleAdminController.RemoveGoogleAdminGroupConnection
+GET    /google-cloud/google-admin/groups/:groupKey                      GoogleAdminController.GetGroup
+GET    /google-cloud/google-admin/groups/:groupKey/members              GoogleAdminController.GetGroupMembers
+GET    /google-cloud/google-admin/groups/:groupKey/members/:memberKey   GoogleAdminController.GetGroupMember
+PUT    /google-cloud/google-admin/groups/:groupKey/members/:memberKey   GoogleAdminController.UpdateGroupMember
+GET    /google-cloud/google-admin/groups/:groupKey/members/has/:memberKey   GoogleAdminController.GroupHasMember
+POST   /google-cloud/google-admin/groups/:groupKey/members              GoogleAdminController.AddGroupMember
+POST   /google-cloud/google-admin/groups/sync/:saasGroupID              GoogleAdminController.SyncGoogleGroupsToSaaSConsoleGroup
+DELETE /google-cloud/google-admin/groups/:groupKey/members/:memberKey   GoogleAdminController.RemoveGroupMemberNew
+GET    /google-cloud/gcp/projects                                       GCPController.ListProjects
+POST   /google-cloud/gcp/projects                                       GCPController.CreateProject
+PUT    /google-cloud/gcp/projects/:projectKey                           GCPController.UpdateProject
+GET    /google-cloud/gcp/projects/:projectKey                           GCPController.GetProject
+PUT    /google-cloud/gcp/projects/connection/:projectKey                GCPController.RemoveProjectConnection
+GET    /google-cloud/gcp/projects/:projectKey/getIamPolicy              GCPController.GetProjectIAMPolicy
+POST   /google-cloud/gcp/projects/:projectKey/setIamPolicy              GCPController.SetProjectIAMPolicy
+POST   /google-cloud/gcp/projects/:projectKey/policy                    GCPController.SetProjectIamPolicy
+PUT    /google-cloud/gcp/projects/:projectKey/member/roles              GCPController.UpdateMemberProjectRoles
+POST   /google-cloud/gcp/projects/members/:projectKey                   GCPController.AddProjectMembers
+POST   /google-cloud/gcp/projects/members/remove/:projectKey            GCPController.RemoveProjectMembers
+POST   /google-cloud/gcp/test-permissions                               GCPController.TestIamPermissions
+GET    /google-cloud/gcp/organizations/me                               GCPController.GetOrganizations
+PUT    /google-cloud/gcp/organizations/policies                         GCPController.UpdateOrganizationPolicy
+POST   /google-cloud/gcp/organizations/roles                            GCPController.AddRolesToOrganization
+GET    /google-cloud/iam/roles                                          IAMController.GetRoles
+GET    /google-cloud/iam/roles/:name                                    IAMController.GetRole
+GET    /google-cloud/google-drive/drives                                GoogleDriveController.ListDrives
+GET    /google-cloud/google-drive/drives/:driveId                       GoogleDriveController.GetDrive
+PUT    /google-cloud/google-drive/drives/:driveId                       GoogleDriveController.UpdateDrive
+POST   /google-cloud/google-drive/drives                                GoogleDriveController.CreateDrive
+POST    /google-cloud/google-drive/drives/:driveId/files                 GoogleDriveController.GetDriveFiles
+GET    /google-cloud/google-drive/files/:fileId                         GoogleDriveController.GetFile
+GET    /google-cloud/google-drive/files/:fileId/permissions             GoogleDriveController.ListFilePermissions
+POST   /google-cloud/google-drive/files/:fileId/permissions             GoogleDriveController.CreateFilePermissions
+PUT    /google-cloud/google-drive/files/:fileId/permissions/:permissionId   GoogleDriveController.UpdateFilePermissions
+DELETE /google-cloud/google-drive/files/:fileId/permissions/:permissionId   GoogleDriveController.DeleteFilePermissions
+PUT     /google-cloud/google-drive/files/connection/:fileId             GoogleDriveController.RemoveFileConnection
+GET    /google-cloud/firebase/projects                                  FirebaseController.GetFirebaseProjects
+GET    /google-cloud/firebase/projects/:projectID                       FirebaseController.GetFirebaseProject
+POST   /google-cloud/firebase/projects/:projectID                       FirebaseController.AddFirebaseProject
+POST   /google-cloud/google-admin/users/signin-email                    GoogleAdminController.SendSignInEmailToUser
+GET     /google-cloud/user/:userId/permissions                          GoogleAdminController.ViewUserPermissionService
+PUT     /google-cloud/user/:email                                      GoogleAdminController.UpdateGoogleUser
+GET    /google-cloud/transfer/application/list/:userID                  GoogleAdminController.ListDataTransferApplication
+GET    /google-cloud/transfer/application/:transferID                   GoogleAdminController.GetTransferRequest
+POST   /google-cloud/transfer/application                               GoogleAdminController.InitiateDataTransfer
+POST    /google-cloud/request-permission-change                               GoogleAdminController.RequestPermissionChange
+
+GET /google-cloud/subscriptions                                         GoogleLicenseController.GetLicenseInfo
+
+# Office365
+#AUTH
+GET     /office365/auth                                         MicrosoftOAuthController.GetAuthCodeURL
+GET     /office365/token                                        MicrosoftOAuthController.AuthorizationCodeToAccessToken
+GET     /office365/me                                           AzureController.GetCurrentUser
+GET     /office365/test_connection                              AzureController.TestConnection
+#USERS
+GET     /office365/users                                        AzureController.GetAzureUsers
+DELETE  /office365/users/:azureID                               AzureController.DeleteAzureUsers
+POST    /office365/users                                        AzureController.CreateAzureUser
+PATCH   /office365/users/updatepassword                         AzureController.UpdateAzureUserPassword
+
+#OFFICE LICENSE
+GET     /office365/license                                      MsLicenseController.GetOfficeLicenses
+GET     /office365/license/users                                MsLicenseController.GetUserByLicense
+GET     /office365/license/info                                 MsLicenseController.GetLicenseInfo 
+POST    /office365/license/assign                               MsLicenseController.AssignLicense
+POST    /office365/license/remove                               MsLicenseController.RemoveLicense
+GET     /office365/license/business-basic                       MsLicenseController.GetBusinessBasicLicense
+
+#AZURE ADMIN
+GET     /office365/azure                                        AzureController.GetAzureGroups
+GET     /office365/azure/users                                  AzureController.GetUserByAzureGroup
+GET     /office365/azure/info                                   AzureController.GetAzureGroupInfo
+POST    /office365/azure/add                                    AzureController.AddAzureGroupMember
+POST    /office365/azure/remove                                 AzureController.RemoveAzureGroupMember
+POST    /office365/azure/owner/add                              AzureController.AddAzureGroupOwner
+POST    /office365/azure/owner/remove                           AzureController.RemoveAzureGroupOwner
+POST    /office365/azure/create                                 AzureController.CreateAzureGroup
+PATCH   /office365/azure/update                                 AzureController.UpdateAzureGroup
+POST    /office365/azure/import/users                           AzureController.AzureMembersSyncToApp
+#SHAREPOINT
+GET     /office365/sharepoint                                   SharepointController.GetTreeView
+GET     /office365/sharepoint/drives                            SharepointController.GetDrives
+GetDrives
+#ONE DRIVE
+GET     /office365/onedrive                                     OneDriveController.GetOneDriveFiles
+GET     /office365/onedrive/info                                OneDriveController.GetDriveInfo
+GET     /office365/onedrive/permissions                         OneDriveController.GetFilePermission
+POST    /office365/onedrive/invite                              OneDriveController.InviteUserToFile
+POST    /office365/onedrive/remove                              OneDriveController.RemoveUserToFile
+POST    /office365/onedrive/permissions/update                  OneDriveController.UpdateUserFilePremission
+POST    /office365/onedrive/create                              OneDriveController.CreateOneDriveFolder
+PATCH   /office365/onedrive/update                              OneDriveController.UpdateOneDriveItem
+# JIRA
+GET     /jira/auth                                              JiraOAuthController.GetJiraAuthURL
+POST    /jira/auth/token                                        JiraOAuthController.JiraAccessCodeToAccessToken
+POST    /jira/token                                             JiraOauthController.SaveJiraConfig
+GET     /jira/user                                              JiraController.GetUser
+GET     /jira/user/all                                          JiraController.GetAllUsers
+GET     /jira/me                                                JiraController.GetCurrentUser
+GET     /jira/check                                             JiraController.GetPermission
+GET     /jira/groups                                            JiraController.GetAllGroups
+POST    /jira/user                                              JiraController.CreateUser
+POST    /jira/group                                             JiraController.GetGroup
+GET     /jira/group/:accountID                                  JiraGroupController.GetJiraGroup
+POST    /jira/group/create                                      JiraGroupController.CreateNewGroup
+POST    /jira/group/member/add                                  JiraController.AddUserToGroup 
+POST    /jira/group/member/                                     JiraController.CheckingMembers 
+DELETE  /jira/group/member/remove                               JiraController.RemoveUserToGroup 
+GET     /jira/group/member                                      JiraController.GetGroupMembers
+GET     /jira/project/all                                       JiraProjectController.GetAllProjects
+GET     /jira/project                                           JiraProjectController.GetProject
+GET     /jira/connected/projects/:groupId                       JiraProjectController.GetConnectedJiraProjects
+POST    /jira/project                                           JiraProjectController.CreateJiraProject
+GET     /jira/projectrole                                       JiraProjectController.GetAllRoles
+GET     /jira/project/projectrole                               JiraProjectController.GetRole
+POST    /jira/projectrole                                       JiraProjectController.CreateProjectRole
+PUT     /jira/project/:projectId                                JiraProjectController.UpdateJiraProject
+GET     /jira/projectrole/projectactors                         JiraProjectController.GetProjectRoleActors
+POST    /jira/project/projectrole/projectactors                 JiraProjectController.AddProjectRoleActors
+DELETE  /jira/project/projectrole/projectactors                 JiraProjectController.DeleteProjectRoleActors
+GET     /jira/project/permissionscheme                          JiraProjectController.GetProjectPermissionScheme
+PUT     /jira/project/permissionscheme                          JiraProjectController.AssignProjectPermissionScheme
+GET     /jira/permissionscheme                                  JiraProjectController.GetAllPermissionScheme
+GET     /jira/project/roledetails                               JiraProjectController.GetProjectRoleDetails
+GET     /jira/project/allroledetails/:userId                    JiraProjectController.GetProjectsRoleOptions
+GET     /jira/project/projectactors/remove                      JiraProjectController.DeleteProjectActorsAutomation
+POST    /jira/project/members                                  JiraProjectController.AddMembersToJiraProject
+GET     /jira/duplicate                                         JiraController.CheckExistingMembers
+POST    /jira/members/add                                       JiraGroupController.AddMembersToJiraGroup
+GET     /jira/connected/group/:groupId                          JiraGroupController.GetConnectedJiraGroups
+<!-- GET     /jira/connected/group/:connectedItemId                  JiraGroupController.GetConnectedJiraGroup -->
+DELETE  /jira/connected/group/:groupId                          JiraGroupController.RemoveConnectedItemConnection
+DELETE  /jira/user/remove                                       JiraController.DeleteUser
+GET     /jira/connected/members/:connectedItemId                JiraGroupController.GetJiraGroupMembers                     
+GET     /jira/existing/users/:groupId                           JiraGroupController.GetExistingUsers
+GET     /jira/user/:accountId/displayName                          JiraController.GetJiraDisplayName
+GET     /jira/user/:userId/permissions                          JiraGroupController.ViewUserPermissionService
+
+# Github
+#AUTH
+GET     /github/auth                                            GithubOAuthController.GetAuthCodeURL
+GET     /github/token                                           GithubOAuthController.AuthorizationCodeToAccessToken
+GET    /github/me/orgs                                          GithubOAuthController.SaveCurrentOrganization
+GET     /github/test_connection                                 GithubController.TestConnection
+GET     /github/me                                              GithubController.GetCurrentUser     
+GET     /github/members/org                                     GithubController.GetOrganizationMembers
+# TEAM MANAGEMENT
+GET     /github/teams                                           GitHubTeamController.GetGitHubTeams
+POST    /github/teams                                           GitHubTeamController.CreateGitHubTeam
+PATCH   /github/teams                                           GitHubTeamController.UpdateGitHubTeam
+GET     /github/teams/connected                                 GitHubTeamController.GetGitHubConnectedTeams
+GET     /github/teams/members                                   GitHubTeamController.GetGitHubTeamMembers
+POST    /github/teams/members/add                               GitHubTeamController.AddGitHubTeamMembers
+POST    /github/teams/members/remove                            GitHubTeamController.RemoveGitHubTeamMembers
+PATCH   /github/teams/members/update                            GitHubTeamController.UpdateGitHubTeamMapping
+PATCH   /github/teams/members/sync                              GitHubTeamController.SyncGitHubTeamMembers
+PATCH   /github/teams/permission                          GitHubTeamController.UpdateGitHubTeamPermission
+# REPOSITORY MANAGEMENT
+GET     /github/repos                                           GitHubRepoController.GetGitHubRepos
+POST    /github/repos                                           GitHubRepoController.CreateGitHubRepository
+PATCH   /github/repos                                           GitHubRepoController.UpdateGitHubRepository
+GET     /github/repos/connected                                 GitHubRepoController.GetGitHubConnectedRepos
+GET     /github/repos/teams                                     GitHubRepoController.GetGitHubRepositoryTeams
+POST    /github/repos/teams/add                                 GitHubRepoController.AddGitHubRepository
+POST    /github/repos/teams/remove                              GitHubRepoController.RemoveGitHubRepository
+PATCH   /github/repos/teams/sync                                GitHubRepoController.SyncGitHubRepository
+# Bitbucket
+GET     /bitbucket/invitations                                  BitbucketUsersController.ListPendingInvitations
+POST    /bitbucket/invitations                                  BitbucketGroupsController.SendBitbucketInvitations
+#GET     /bitbucket/auth                                        BitbucketOAuthController.GetAuthCodeURL
+#GET     /bitbucket/token                                       BitbucketOAuthController.AuthorizationCodeToAccessToken
+POST     /bitbucket/connect                                     BitbucketAuthController.ConnectBitbucket
+POST     /bitbucket/save                                        BitbucketAuthController.SaveBitbucketCredentials
+GET      /bitbucket/test_connection                             BitbucketUsersController.TestConnection
+GET      /bitbucket/me                                          BitbucketUsersController.GetCurrentUser
+POST     /bitbucket/invite                                      BitbucketUsersController.InviteUsers
+GET     /bitbucket/user/:userID                                BitbucketUsersController.GetBitbucketUser
+GET      /bitbucket/users                                       BitbucketUsersController.ListWorkspaceUsers
+GET      /bitbucket/groups                                      BitbucketGroupsController.ListBitbucketGroups
+GET      /bitbucket/groups/connected/:groupID                   BitbucketGroupsController.ListConnectedBitbucketGroups
+POST     /bitbucket/groups/:groupID                             BitbucketGroupsController.CreateBitbucketGroup
+PUT      /bitbucket/groups/:groupSlug                           BitbucketGroupsController.UpdateBitbucketGroup
+GET      /bitbucket/groups/:groupSlug/members                   BitbucketGroupsController.BitbucketGroupMembers
+POST     /bitbucket/groups/members/:groupID                     BitbucketGroupsController.AddBItbucketGroupMembers
+POST     /bitbucket/groups/sync/members                         BitbucketGroupsController.SyncBitbucketGroupMembers
+PATCH    /bitbucket/groups/members/update                       BitbucketGroupsController.UpdateBitbucketGroupMembersMapping
+DELETE   /bitbucket/groups/:groupSlug/members/:uuid             BitbucketGroupsController.DeleteBitbucketGroupMembers
+DELETE   /bitbucket/groups/:groupID/remove/:groupSlug           BitbucketGroupsController.RemoveBitbucketGroupConnection
+GET      /bitbucket/user/:userId/permissions                    BitbucketGroupsController.ViewUserPermissionService
+# Bitbucket Projects
+GET     /bitbucket/projects                                     BitbucketProjectsController.ListBitbucketProjects
+GET     /bitbucket/projects/connected/:groupID                  BitbucketProjectsController.ListConnectedBitbucketProjects
+GET     /bitbucket/project/:groupID                             BitbucketProjectsController.GetBitbucketProject
+POST    /bitbucket/project/:groupID                             BitbucketProjectsController.CreateBitbucketProject
+PUT     /bitbucket/project/:projectKey                          BitbucketProjectsController.UpdateBitbucketProject
+PUT     /bitbucket/project/:projectKey/permissions/group        BitbucketProjectsController.UpdateBitbucketProjectGroupPermission
+DELETE  /bitbucket/project/:projectKey/permissions/group        BitbucketProjectsController.RemoveBitbucketProjectGroupPermission
+PUT     /bitbucket/project/:projectKey/permissions/user         BitbucketProjectsController.UpdateBitbucketProjectUserPermission
+DELETE  /bitbucket/project/:projectKey/permissions/user         BitbucketProjectsController.RemoveBitbucketProjectUserPermission
+GET     /bitbucket/project/:projectKey/permissions/user         BitbucketProjectsController.GetConnectedBitbucketProjectMember
+
+# Bitbucket Repositories
+GET     /bitbucket/repositories                                 BitbucketRepositoriesController.ListBitbucketRepositories
+GET     /bitbucket/repositories/connected/:groupID              BitbucketRepositoriesController.ListConnectedBitbucketRepositories                      
+GET     /bitbucket/repository/:groupID                          BitbucketRepositoriesController.GetBitbucketRepository
+POST    /bitbucket/repository/:groupID                          BitbucketRepositoriesController.CreateBitbucketRepository
+PUT     /bitbucket/repository/:repoSlug                         BitbucketRepositoriesController.UpdateBitbucketRepository
+PUT     /bitbucket/repository/:repoSlug/permissions/group       BitbucketRepositoriesController.UpdateBitbucketRepositoryGroupPermission
+DELETE  /bitbucket/repository/:repoSlug/permissions/group       BitbucketRepositoriesController.RemoveBitbucketRepositoryGroupPermission
+PUT     /bitbucket/repository/:repoSlug/permissions/user        BitbucketRepositoriesController.UpdateBitbucketRepositoryUserPermission
+DELETE  /bitbucket/repository/:repoSlug/permissions/user        BitbucketRepositoriesController.RemoveBitbucketRepositoryUserPermission
+GET     /bitbucket/repository/:repoSlug/permissions/user         BitbucketRepositoriesController.GetConnectedBitbucketRepositoryMembers
+
+# Dropbox
+#AUTH
+GET     /dropbox/auth                                           DropBoxOAuthController.GetAuthCodeURL
+GET     /dropbox/token                                          DropBoxOAuthController.AuthorizationCodeToAccessToken
+GET     /dropbox/me                                             DropBoxController.GetCurrentUser
+#TEAM
+GET     /dropbox/team                                           DropBoxController.GetTeamInformation
+GET     /dropbox/team/members                                   DropBoxController.GetTeamMembers
+DELETE  /dropbox/team/members/:memberId                         DropBoxController.RemoveTeamMember
+# GROUP
+GET     /dropbox/groups/:groupId                                DropBoxController.GetGroups
+GET     /dropbox/groups/:groupId/connected                      DropBoxController.GetConnectedGroups
+POST    /dropbox/groups/:groupId/create                         DropBoxController.CreateGroup
+PUT     /dropbox/groups/update                                  DropBoxController.UpdateGroup
+POST    /dropbox/groups/:groupId/members                        DropBoxController.AddMembersToGroup
+PUT     /dropbox/groups/:groupId/members                        DropBoxController.RemoveMembersToGroup
+PATCH   /dropbox/groups/:groupId/members                        DropBoxController.GetGroupMembers
+POST    /dropbox/groups/:groupId/sync                           DropBoxController.SyncMembersToGroup
+POST    /dropbox/groups/member/add                              DropBoxController.AddMemberToGroups
+POST    /dropbox/groups/sync/all                                DropBoxController.SyncAllGroups
+POST    /dropbox/groups/sync/retry                              DropBoxController.RetrySyncInvites
+POST    /dropbox/groups/member/remove                           DropBoxController.RemoveMemberToGroups
+# FOLDER
+GET     /dropbox/folder/:groupId                                DropBoxController.GetFolder
+GET     /dropbox/folder/:groupId/connected                      DropBoxController.GetConnectedFolder
+POST    /dropbox/folder/:groupId/create                         DropBoxController.CreateFolder
+PUT     /dropbox/folder/move                                    DropBoxController.MoveFolder
+POST    /dropbox/folder/:groupId                                DropBoxController.ConnectFolder
+PUT     /dropbox/folder/:groupId                                DropBoxController.DisconnectFolder
+PATCH   /dropbox/folder/:groupId                                DropBoxController.GetGroupsInFolder
+POST    /dropbox/folder/:groupId/sync                           DropBoxController.SyncGroupToFolder 
+POST    /dropbox/folder/sync/all                                DropBoxController.SyncAllFolders
+POST    /dropbox/folder/update/permission                       DropBoxController.UpdateGroupPermission
+
+# AWS
+POST    /aws/save-credentials                                   AWSAuthController.SaveAWSCredentials
+POST    /aws/assume-role                                        AWSAuthController.AssumeRole
+GET     /aws/caller-identity                                    AWSController.GetCallerIdentity
+POST    /aws/groups                                             AWSController.CreateGroup
+PATCH   /aws/groups                                             AWSController.UpdateGroup
+GET     /aws/groups/                                            AWSController.GetGroups
+# GET     /aws/groups/:groupName                                  AWSController.GetGroup
+GET     /aws/groups/:groupID                                  AWSController.GetGroupByID
+GET     /aws/users                                              AWSController.GetUsers
+POST    /aws/users                                              AWSController.CreateUser
+GET     /aws/groups/:groupName/policies                         AWSController.GetGroupPolicies
+GET     /aws/policies                                           AWSController.GetPolicies
+POST    /aws/groups/:groupName/policies                         AWSController.AddPolicyToGroup
+POST    /aws/groups/users                                       AWSController.AddUserToGroup
+DELETE  /aws/groups/users                                       AWSController.RemoveUserFromGroup
+PATCH   /aws/groups/:groupName                                  AWSController.DetachGroupPolicy 
+POST    /aws/uids                                               AWSController.SaveIntegrationUID
+DELETE  /aws/groups/connection/:groupName                       AWSController.RemoveAWSGroupConnection
+GET     /aws/access-keys/:userName                              AWSController.ListAccessKeys
+POST    /aws/access-keys                                        AWSController.CreateAccessKey
+PATCH   /aws/access-keys                                        AWSController.UpdateAccessKey
+DELETE  /aws/access-keys/:accessKeyID                           AWSController.DeleteAccessKey
+POST    /aws/access-keys/send-email                             AWSController.EmailAccessKey
+
+# Salesforce
+GET     /salesforce/authorization_code                                      SalesforceOAuthController.RequestAuthorizationCode
+POST    /salesforce/access_token/:code                                      SalesforceOAuthController.RequestAccessToken
+GET     /salesforce/groups                                                  SalesforceController.GetChatterGroups
+GET     /salesforce/groups/group                                            SalesforceController.GetChatterGroupByKeys
+GET     /salesforce/groups/members                                          SalesforceController.GetChatterGroupMembers
+GET     /salesforce/group-memberships/:membershipId                         SalesforceController.GetChatterGroupMembership   
+GET     /salesforce/groups/:groupId/members                                 SalesforceController.GetChatterGroupMemberships
+PATCH   /salesforce/group-memberships/:membershipId                         SalesforceController.UpdateChatterGroupMembershipRole
+POST    /salesforce/groups                                                  SalesforceController.CreateChatterGroup
+PATCH   /salesforce/groups                                                  SalesforceController.UpdateChatterGroupInfo
+POST    /salesforce/groups/members                                          SalesforceController.AddChatterGroupMember
+DELETE  /salesforce/groups/members                                          SalesforceController.RemoveChatterGroupMember
+GET     /salesforce/users                                                   SalesforceController.GetSalesforceUsersList
+GET     /salesforce/user                                                    SalesforceController.GetSalesforceUser
+GET     /salesforce/users/:userID                                           SalesforceController.GetUserByID
+GET     /salesforce/users/byEmail/:email                                    SalesforceController.GetUserByEmail
+POST    /salesforce/user                                                    SalesforceController.CreateSalesforceUser
+PATCH   /salesforce/user                                                    SalesforceController.UpdateSalesforceUser
+GET     /salesforce/organization                                            SalesforceController.GetOrganizationDetails
+GET     /salesforce/profiles                                                SalesforceController.GetProfilesList
+GET     /salesforce/userlicenses                                            SalesforceController.GetSalesforceUserLicensesList
+GET     /salesforce/user-info                                               SalesforceController.GetUserInfo
+GET     /salesforce/permission-sets                                         SalesforceController.ListPermissionSets
+GET     /salesforce/permission-sets/:permissionSetID                        SalesforceController.GetPermissionSet
+GET     /salesforce/permission-sets/assignments/:permissionSetID            SalesforceController.ListPermissionSetAssignment
+POST    /salesforce/permission-sets/assignments/assign-members              SalesforceController.AddMembersToPermissionSet
+DELETE  /salesforce/permission-sets/assignments/remove-member/:recordId     SalesforceController.RemoveMemberFromPermissionSet
+POST    /salesforce/permission-sets                                         SalesforceController.CreatePermissionSet
+PATCH   /salesforce/permission-sets                                         SalesforceController.UpdatePermissionSetInfo
+GET     /salesforce/permissionsets/licenses                                 SalesforceController.ListPermissionSetLicenses
+GET     /salesforce/duplicate                                               SalesforceController.CheckExistingMembers
+
+# Stripe
+GET     /stripe/prices                                                          StripeControllerz.GetStripePricing
+PUT     /stripe/subscription/update/custom                                      StripeControllerz.UpdateSubscriptionCustom
+GET     /stripe/test                                                            StripeControllerz.Test
+GET     /stripe/subscription/status                                             StripeControllerz.GetStripeSubscriptionStatus
+POST    /stripe/subscription/create                                             StripeControllerz.CreateStripeSubscription
+POST    /stripe/subscription/update                                             StripeControllerz.UpdateStripeSubscription
+POST    /stripe/customer/card                                                   StripeControllerz.AddStripeCustomerCard
+GET     /stripe/customer/details                                                StripeControllerz.GetCustomerDetails
+GET     /stripe/customer/cards                                                  StripeControllerz.GetStripeCustomerCards
+DELETE  /stripe/subscription/cancel                                             StripeControllerz.CancelStripeSubscription
+POST    /stripe/subscription/reactivate                                         StripeControllerz.ReactivateStripeSubscription
+GET     /stripe/customer/invoice                                                StripeControllerz.GetCustomerInvoice
+
+# Zoom
+GET      /zoom/authorization_code                            ZoomOAuthController.RequestAuthorizationCode
+GET      /zoom/access_token                                  ZoomOAuthController.RequestAccessToken
+GET      /zoom/test_connection                               ZoomController.TestConnection
+GET      /zoom/test                                          ZoomController.Test
+GET      /zoom/current_user                                  ZoomController.GetCurrentUser
+#ZoomRoles
+GET      /zoom/roles                                         ZoomRoleController.GetZoomRoles
+POST     /zoom/roles                                         ZoomRoleController.CreateZoomRole   
+POST     /zoom/roles/:roleId/members                         ZoomRoleController.AssignZoomRole
+PATCH    /zoom/roles/:roleId                                 ZoomRoleController.UpdateZoomRole                           
+DELETE   /zoom/roles/:roleId                                 ZoomRoleController.DeleteZoomRole  
+DELETE   /zoom/roles/:roleId/members/:email                  ZoomRoleController.UnassignZoomRole
+#ZoomUsers
+GET      /zoom/users                                         ZoomUserController.GetZoomUsers                         
+POST     /zoom/users                                         ZoomUserController.CreateZoomUser
+PUT      /zoom/users                                         ZoomUserController.ResendInvite
+DELETE   /zoom/users/:email/invite                           ZoomUserController.CancelZoomUserInvite
+PUT      /zoom/users/:userId/status                          ZoomuserController.ChangeZoomUserStatus
+#ZoomGroups
+GET      /zoom/groups                                        ZoomController.GetGroups
+GET      /zoom/groups/members                                ZoomController.GetGroupMembers
+POST     /zoom/group/create                                  ZoomController.CreateGroup   
+PATCH    /zoom/group/update                                  ZoomController.UpdateGroup   
+POST     /zoom/group/admin                                   ZoomController.AddAdminGroup
+POST     /zoom/group/member                                  ZoomController.AddMemberGroup
+POST     /zoom/group/admin/remove                            ZoomController.DeleteGroupAdmin
+POST     /zoom/group/member/remove                           ZoomController.DeleteGroupMember
+POST     /zoom/group/member/sync                             ZoomController.SyncMembers
+# ZoomMeetings
+GET      /zoom/meetings                                     ZoomMeetingController.GetZoomMeetings
+GET      /zoom/meetings/connected                           ZoomMeetingController.GetZoomConnectedMeetings
+POST     /zoom/meetings                                     ZoomMeetingController.CreateZoomMeeting
+GET      /zoom/meetings/:pmi/registrants                    ZoomMeetingController.GetMeetingRegistrants
+POST     /zoom/meetings/:pmi/registrants                    ZoomMeetingController.AddMeetingRegistrants
+PUT      /zoom/meetings/:pmi/registrants/status             ZoomMeetingController.UpdateRegistrantStatus
+PATCH    /zoom/meetings/:pmi                                ZoomMeetingController.UpdateZoomMeeting
+DELETE   /zoom/meetings/:pmi                                ZoomMeetingController.DeleteMeeting
+#ZoomWebinars
+POST     /zoom/webinar/create                                 ZoomWebinarController.CreateWebinar
+PATCH    /zoom/webinar/update                                 ZoomWebinarController.UpdateWebinar
+GET      /zoom/webinars                                       ZoomWebinarController.GetWebinars
+GET      /zoom/webinar                                        ZoomWebinarController.GetWebinar
+POST     /zoom/webinar/participants/add                       ZoomWebinarController.AddParticipants
+POST     /zoom/webinar/participants/invite                    ZoomWebinarController.InviteParticipants
+POST     /zoom/webinar/participants/delete                    ZoomWebinarController.DeleteParticipants
+DELETE   /zoom/webinars/:webinarId                            ZoomWebinarController.DeleteWebinar
+GET      /zoom/webinar/participants                           ZoomWebinarController.GetWebinarParticipants
+PUT      /zoom/webinar/participants                           ZoomWebinarController.ChangeWebinarParticipantsStatus
+# Slack
+GET     /slack/auth                                                                 SlackOAuthController.GetAuthCodeURL
+GET     /slack/token                                                                SlackOAuthController.AuthorizationCodeToAccessToken
+GET     /slack/auth/test                                                            SlackController.AuthTokenTest  
+GET     /slack/user/current                                                         SlackController.GetCurrentUser
+GET     /slack/user/info                                                            SlackController.GetCurrentUserInfo
+GET     /slack/team/billing/info                                                    SlackController.GetTeamBillingInfo
+
+# Slack Channels
+GET     /slack/channel                                                              SlackChannelController.ListSlackChannels
+GET     /slack/channels                                                             SlackChannelController.GetChannelList
+GET     /slack/channel                                                              SlackChannelController.GetChannelInfo
+GET     /slack/channel/members                                                      SlackChannelController.GetChannelMembers
+GET     /slack/channels/connected                                                   SlackChannelController.GetConnectedChannels
+GET     /slack/team/users                                                           SlackChannelController.GetSlackTeamUsers
+POST    /slack/channel/create                                                       SlackChannelController.CreateChannel
+POST    /slack/channel/rename                                                       SlackChannelController.RenameChannel
+POST    /slack/channel/info                                                         SlackChannelController.UpdateChannelInfo
+POST    /slack/channel/disconnect                                                   SlackChannelController.DisconnectChannelFromGroup
+<!-- POST    /slack/channel/connect                                                      SlackChannelController.ConnectSlackChannel -->
+POST    /slack/channel/members                                                      SlackChannelController.RemoveChannelMember 
+POST    /slack/channel/invite                                                       SlackChannelController.InviteMembersToChannel
+POST    /slack/channel/sync                                                         SlackChannelController.SyncSlackChannel
+POST    /slack/channel/members/add                                                  SlackChannelController.AddMembersToSlackChannel
+POST    /slack/channel/members/remove                                               SlackChannelController.RemoveMembersToSlackChannel
+# Slack User Groups
+GET     /slack/usergroups                                                           SlackUserGroupsController.ListSlackUserGroups
+GET     /slack/usergroups/info                                                      SlackUserGroupsController.GetSlackUserGroupsInfo
+POST    /slack/usergroups                                                           SlackUserGroupsController.CreateSlackUserGroup
+PUT     /slack/usergroups                                                           SlackUserGroupsController.UpdateSlackUserGroup
+POST    /slack/usergroups/connect/:userGroupID                                      SlackUserGroupsController.ConnectSlackUserGroup
+PATCH   /slack/usergroups/disconnect/:userGroupID                                   SlackUserGroupsController.DisconnectSlackUserGroup
+POST    /slack/usergroups/invite/:userGroupID                                       SlackUserGroupsController.InviteMembersToUserGroup
+POST    /slack/usergroups/members/add                                               SlackUserGroupsController.AddMembersToSlackUserGroup
+POST    /slack/usergroups/members/remove                                            SlackUserGroupsController.RemoveMembersToSlackUserGroup
+# Zendesk - Auth
+POST    /zendesk/auth                                                               ZendeskOAuthController.GetAuthCodeURL
+GET     /zendesk/token                                                              ZendeskOAuthController.RequestAccessToken
+GET     /zendesk/auth/current_user                                                  ZendeskController.GetCurrentUser
+# Zendesk - Tickets
+GET     /zendesk/tickets                                                            ZendeskTicketController.ListTickets
+GET     /zendesk/tickets/:ticketId                                                  ZendeskTicketController.GetTicketInfo
+GET     /zendesk/tickets/:ticketId/comments                                         ZendeskTicketController.GetTicketComments
+GET     /zendesk/tickets/group/:groupId                                             ZendeskTicketController.GetGroupTickets
+GET     /zendesk/tickets/search/:groupId                                            ZendeskTicketController.SearchGroupTickets
+PUT     /zendesk/tickets/:ticketId                                                  ZendeskTicketController.AssignTicket
+PUT     /zendesk/tickets/reassign/:groupId                                          ZendeskTicketController.ReAssignTickets
+# Zendesk - Groups
+POST    /zendesk/groups                                                             ZendeskGroupController.CreateGroup
+PUT     /zendesk/groups                                                             ZendeskGroupController.UpdateGroup
+GET     /zendesk/groups                                                             ZendeskGroupController.GetGroups
+GET     /zendesk/groups/:groupId/memberships/assignable                             ZendeskGroupController.GetGroupMembers
+POST    /zendesk/group_memberships                                                  ZendeskGroupController.AssignAgentToGroup
+DELETE  /zendesk/group_memberships/:membershipId                                    ZendeskGroupController.RemoveGroupMember
+GET     /zendesk/groups/:groupId                                                    ZendeskGroupController.GetGroup
+POST    /zendesk/connect/groups                                                     ZendeskGroupController.ConnectGroup
+GET     /zendesk/connected/groups                                                   ZendeskGroupController.GetConnectedGroups
+DELETE  /zendesk/connected/groups/:groupId                                          ZendeskGroupController.RemoveConnectedGroupMembers
+# Zendesk - Users
+POST    /zendesk/users                                                              ZendeskController.CreateUserAgent
+GET     /zendesk/users/:agentId                                                     ZendeskController.GetAgent
+GET     /zendesk/users/search/:email                                                ZendeskController.GetAgentByEmail
+DELETE  /zendesk/users/:userId                                                      ZendeskController.DeleteUser
+DELETE  /zendesk/users/:userId/permanent                                            ZendeskController.PermanentlyDeleteUser
+GET     /zendesk/organization/users                                                 ZendeskController.GetOrganizationUsers
+
+# Hootsuite
+GET     /test/test/test                                                             HootsuiteTeamController.Test
+GET     /hootsuite/auth                                                             HootsuiteOAuthController.GetAuthCodeURL
+GET     /hootsuite/token                                                            HootsuiteOAuthController.AuthorizationCodeToAccessToken
+GET     /hootsuite/auth/orgs                                                        HootsuiteTeamController.GetHootsuiteOrgIds
+GET     /hootsuite/auth/user                                                        HootsuiteTeamController.GetAuthenticatedUser
+GET     /hootsuite/teams/list                                                       HootsuiteTeamController.GetHootsuiteOrgTeams
+GET     /hootsuite/team/list                                                        HootsuiteTeamController.GetIndividualTeamInfo
+GET     /hootsuite/org/members                                                      HootsuiteTeamController.GetAllOrgMembers
+GET     /hootsuite/org/members                                                      HootsuiteTeamController.GetConnectedHootsuiteTeams
+GET     /hootsuite/team/connected                                                   HootsuiteTeamController.GetConnectedHootsuiteTeamIndividually
+DELETE  /hootsuite/org/member/:memberId                                             HootsuiteTeamController.DeleteMemberFromOrganization
+# Hootsuite - Teams
+POST    /hootsuite/teams/create                                                     HootsuiteTeamController.CreateHootsuiteOrgTeams
+POST    /hootsuite/teams/member/add                                                 HootsuiteTeamController.AddMemberToTeam
+POST    /hootsuite/teams/sync                                                       HootsuiteTeamController.SyncHootsuiteTeams
+PATCH   /hootsuite/teams/update/:groupId                                            HootsuiteTeamController.UpdateHootsuiteTeams
+POST    /hootsuite/teams/members/invite/:groupId                                    HootsuiteTeamController.AddInviteMembersToHootsuiteTeams
+PATCH   /hootsuite/teams/disconnect/:groupId                                        HootsuiteTeamController.DisconnectTeam
+POST    /hootsuite/teams/members/add                                                HootsuiteTeamController.AddMembersToHootsuiteTeams
+PATCH   /hootsuite/teams/members/remove                                             HootsuiteTeamController.RemoveMembersToHootsuiteTeams
+
+# DocuSign
+GET     /docusign/auth                                                              DocuSignOAuthController.GetAuthCodeURL
+GET     /docusign/token                                                             DocuSignOAuthController.RequestAccessToken
+GET     /docusign/auth/current_user                                                 DocuSignController.GetCurrentUser
+POST    /docusign/user                                                              DocuSignController.CreateUser
+DELETE  /docusign/users                                                             DocuSignController.DeleteUser
+GET     /docusign/users                                                             DocuSignController.GetUnregisteredUsers
+# DocuSign - UserGroups
+GET     /docusign/groups                                                            DocuSignUserGroupController.GetGroups
+GET     /docusign/connected/groups                                                  DocuSignUserGroupController.GetConnectedGroups
+POST    /docusign/groups                                                            DocuSignUserGroupController.CreateGroup
+PUT     /docusign/groups                                                            DocuSignUserGroupController.UpdateGroup
+POST    /docusign/groups/members                                                    DocuSignUserGroupController.AddMembersToGroup
+DELETE  /docusign/groups/:groupId                                                   DocuSignUserGroupController.RemoveGroupUsers
+
+# DocuSign - Accounts                                                               
+GET     /docusign/permission_profiles                                               DocuSignController.GetAccountPermissionProfiles
+GET     /docusign/supported_languages                                               DocuSignController.GetSupportedLanguages
+# Asana
+GET     /asana/auth                                                                 AsanaOAuthController.GetAuthCodeURL
+GET     /asana/token                                                                AsanaOAuthController.AuthorizationCodeToAccessToken
+POST    /asana/org                                                                  AsanaOAuthController.SaveCurrentOrganization
+GET     /asana/auth/me                                                              AsanaController.GetAuthenticatedUser
+GET     /asana/teams                                                                AsanaController.GetAsanaTeams
+GET     /asana/teams/connected                                                      AsanaController.GetConnectedAsanaTeam
+POST    /asana/team/new                                                             AsanaController.CreateAsanaTeam
+POST    /asana/team/member/add                                                      AsanaController.AddMemberToTeam
+POST    /asana/team/members/add                                                     AsanaController.AddMembersToAsanaTeams
+POST    /asana/team/members/remove                                                  AsanaController.RemoveMembersOnAsanaTeams
+PUT     /asana/team                                                                 AsanaController.UpdateAsanaTeam
+GET     /asana/members                                                              AsanaUsersController.GetUserFromAsana
+POST    /asana/members/invite                                                       AsanaUsersController.InviteMembersToAsana
+POST    /asana/members/remove                                                       AsanaUsersController.RemoveMembersFromAsanaOrg
+GET     /asana/projects                                                             AsanaProjectsController.GetProjectsFromAsanaTeam
+GET     /asana/project                                                              AsanaProjectsController.GetProject
+POST    /asana/project/create                                                       AsanaProjectsController.CreateProjectsFromAsanaTeam
+PUT     /asana/project/update                                                       AsanaProjectsController.UpdateProjectOnAsanaTeam
+POST    /asana/project/delete                                                       AsanaProjectsController.DeleteProjectOnAsanaTeam
+POST    /asana/team/disconnect                                                      AsanaController.DisconnectedAsanaTeam
+GET     /asana/team                                                                 AsanaController.GetTeamMembers
+POST    /asana/teams/sync                                                           AsanaController.SyncAsanaTeams 
+GET     /asana/users                                                                AsanaController.GetAllWorkspaceUsersInformation
+POST    /asana/user/remove                                                          AsanaController.RemoveUserOnWorkspaceByEmail
+POST    /asana/user/invite                                                          AsanaController.InviteUserToWorkspace
+
+# Trello - OAuth
+GET     /trello/auth/url                                                            TrelloOAuthController.GetTrelloAuthURL
+GET     /trello/auth/token                                                          TrelloOAuthController.RequestAccessToken
+GET     /trello/token/user                                                          TrelloTokenController.GetTrelloTokenMember
+# Trello - Workspaces
+POST    /trello/workspaces/create                                                   TrelloWorkspaceController.CreateWorkspace
+PUT     /trello/workspaces/update                                                   TrelloWorkspaceController.UpdateWorkspace
+GET     /trello/workspaces/:workspaceID                                             TrelloWorkspaceController.GetWorkspaceInfo
+GET     /trello/workspaces                                                          TrelloWorkspaceController.ListWorkspaces
+GET     /trello/workspaces/connected/:groupId                                       TrelloWorkspaceController.GetConnectedWorkspaces
+POST    /trello/workspaces                                                          TrelloWorkspaceController.AddMemberToWorkspace
+GET     /trello/workspaces/boards/:groupId                                          TrelloWorkspaceController.GetWorkspacesBoards
+DELETE  /trello/workspaces/:workspaceId                                             TrelloWorkspaceController.RemoveWorkspaceMembers
+PUT     /trello/workspaces/member                                                   TrelloWorkspaceController.UpdateWorkspaceMemberType
+PUT     /trello/workspaces/member/status                                            TrelloWorkspaceController.UpdateWorkspaceMemberStatus
+# Trello - Boards
+GET     /trello/boards                                                              TrelloBoardController.ListTrelloBoards
+POST    /trello/boards                                                              TrelloBoardController.CreateTrelloBoard
+PUT     /trello/boards                                                              TrelloBoardController.UpdateTrelloBoard
+GET     /trello/boards/members                                                      TrelloBoardController.ListTrelloBoardMembers
+DELETE  /trello/boards/:boardId                                                     TrelloBoardController.DeleteTrelloBoard
+PUT     /trello/boards/members/invite                                               TrelloBoardController.InviteTrelloBoardMember
+PUT     /trello/boards/members/add                                                  TrelloBoardController.AddTrelloBoardMember
+DELETE  /trello/boards/members                                                      TrelloBoardController.RemoveBoardMember
+
+# Azure Devops OAuth
+GET     /azure-devops/auth/url                                                      AzureDevOpsOAuthController.GetAuthCodeURL
+GET     /azure-devops/auth/token                                                    AzureDevOpsOAuthController.AuthCodeToAccessToken
+POST    /azure-devops/org                                                           AzureDevOpsOAuthController.SaveOrganization
+GET     /azure-devops/user                                                          AzureDevOpsUserController.GetCurrentUser
+
+# Azure Devops Organization Users
+GET     /azure-devops/users                                                          AzureDevOpsUserController.GetOrganizationUsers
+# Azure Devops Projects
+GET     /azure-devops/projects                                                      AzureDevOpsProjectsController.ListProjects
+GET     /azure-devops/projects/:id                                                  AzureDevOpsProjectsController.GetProject
+GET     /azure-devops/connected/projects                                            AzureDevOpsProjectsController.GetConnectedProjects
+POST    /azure-devops/projects                                                      AzureDevOpsProjectsController.CreateProject
+PATCH   /azure-devops/projects/:id                                                  AzureDevOpsProjectsController.UpdateProject
+DELETE  /azure-devops/projects/:id                                                  AzureDevOpsProjectsController.DeleteProject
+POST    /azure-devops/projects/operations                                           AzureDevOpsProjectsController.GetOperations
+
+GET     /azure-devops/projects/:id/teams                                            AzureDevOpsTeamsController.GetProjectTeams
+POST    /azure-devops/projects/:id/teams                                            AzureDevOpsTeamsController.CreateTeam
+GET     /azure-devops/projects/:projectID/teams/:teamID/members                     AzureDevOpsTeamsController.GetTeamMembers
+POST    /azure-devops/projects/teams/members                                        AzureDevOpsTeamsController.AddTeamMembers
+DELETE  /azure-devops/projects/:projectID/teams/:teamID/members/:memberID           AzureDevOpsTeamsController.RemoveTeamMember
+
+GET     /azure-devops/work-processes                                                AzureDevOpsProjectsController.ListWorkProcesses
+
+# GitLab - OAuth
+GET     /gitlab/auth                                                                GitLabOAuthController.GetAuthCodeURL
+GET     /gitlab/token                                                               GitLabOAuthController.RequestAccessToken
+GET     /gitlab/user                                                                GitLabUserController.GetCurrentUser
+GET     /gitlab/users                                                               GitLabUserController.GetGitLabUsersByGroups
+
+# GitLab - Users
+DELETE  /gitlab/users/:email                                                        GitLabUserController.DeleteGitLabUser
+
+# GitLab - Groups
+GET     /gitlab/groups                                                              GitLabGroupController.ListGroups
+POST    /gitlab/groups                                                              GitLabGroupController.CreateGroup
+PUT     /gitlab/groups                                                              GitLabGroupController.UpdateGroup
+GET     /gitlab/groups/:groupId                                                     GitLabGroupController.GetGroup
+DELETE  /gitlab/groups/:groupId/members                                             GitLabGroupController.RemoveGroupMembers
+POST    /gitlab/groups/:groupId/members                                             GitLabGroupController.AddGroupMembers
+GET     /gitlab/groups/:groupId/members                                             GitLabGroupController.ListGroupMembers
+PUT     /gitlab/groups/:groupId/members/:userId                                     GitLabGroupController.UpdateGroupMemberAccess
+PUT     /gitlab/groups/:groupId/members/:userId/state                               GitLabGroupController.UpdateGroupUserMembershipState
+POST    /gitlab/groups/:groupId/transfer/:parentId                                  GitLabGroupController.TransferGroupToNewParentGroup
+POST    /gitlab/groups/:groupId/transfer                                            GitLabGroupController.ConvertGroupToTopLevelGroup
+GET     /gitlab/groups/:groupId/member_roles                                        GitLabGroupController.ListGroupMemberRoles
+POST    /gitlab/groups/:groupId/member_roles                                        GitLabGroupController.AddGroupMemberRole
+DELETE  /gitlab/groups/:groupId/member_roles/:roleId                                GitLabGroupController.RemoveGroupMemberRole
+POST    /gitlab/groups/:groupId/members/approveall                                  GitLabGroupController.ApproveAllPendingGroupMembers
+GET     /gitlab/groups/:groupId/invitations                                         GitLabGroupController.GetInvitedGroupMembers
+POST    /gitlab/groups/invitations                                                  GitLabGroupController.InviteGroupMembersByEmail
+GET     /gitlab/groups/:groupId/subgroups                                           GitLabGroupController.ListSubGroups
+GET     /gitlab/groups/:groupId/access_requests                                     GitLabGroupController.GetAccessRequests
+PUT     /gitlab/groups/:groupId/access_requests                                     GitLabGroupController.ApproveAccessRequests
+POST    /gitlab/groups/subgroups                                                    GitLabGroupController.CreateSubGroup
+
+# GitLab - Projects
+GET     /gitlab/groups/:groupId/projects                                            GitLabProjectController.ListGroupProjects
+POST    /gitlab/projects                                                            GitLabProjectController.CreateProject
+GET     /gitlab/projects/:projectId                                                 GitLabProjectController.GetProject
+GET     /gitlab/projects/:projectId/members                                         GitLabProjectController.ListProjectMembers
+PUT     /gitlab/projects                                                            GitLabProjectController.UpdateProject
+GET     /gitlab/projects/:projectId/repo_contributors                               GitLabProjectController.GetProjectRepositoryContributors
+POST    /gitlab/projects/:projectId/members                                         GitLabProjectController.AddGitLabProjectMember
+DELETE  /gitlab/projects/:projectId/members                                         GitLabProjectController.RemoveProjectMembers
+PUT     /gitlab/projects/:projectId/transfer/:groupId                               GitLabProjectController.TransferProjectToNewNamespace
+PUT     /gitlab/projects/:projectId/members/:userId                                 GitLabProjectController.UpdateProjectMemberAccess
+POST    /gitlab/projects/:projectId/archive                                         GitlabProjectController.ArchiveProject
+
+# Power Bi OAuth
+GET     /power-bi/auth/url                                                          PowerBiOAuthController.GetAuthCodeURL
+GET     /power-bi/auth/token                                                        PowerBIOAuthController.AuthorizationCodeToAccessToken
+
+# Power Bi Groups
+GET     /power-bi/groups                                                            PowerBiGroupsController.ListGroups
+GET     /power-bi/groups/:id                                                        PowerBiGroupsController.GetGroup
+POST    /power-bi/groups                                                            PowerBiGroupsController.CreateGroup
+PATCH   /power-bi/groups/:id                                                        PowerBiGroupsController.UpdateGroup
+GET     /power-bi/groups/:id/users                                                  PowerBiGroupsController.GetGroupMembers
+
+POST    /power-bi/groups/:id/users                                                  PowerBiGroupsController.AddGroupMembers
+DELETE  /power-bi/groups/:id/users/:email                                           PowerBiGroupsController.DeleteGroupMember
+PUT     /power-bi/groups/:id/users                                                  PowerBiGroupsController.UpdateGroupMember
+
+# Oracle - Authentication
+POST    /oracle/authentication                                                      OracleAuthController.SaveOracleAuthentication
+GET     /oracle/authentication/user                                                 OracleController.GetAuthUser
+GET     /oracle/database/auth/token                                                 OracleDbOAuthController.GetDbToken
+POST    /oracle/database/auth                                                       OracleDbOAuthController.SaveDbAuthToken
+# Oracle - Databases
+GET     /oracle/databases                                                           OracleController.ListAutonomousDatabases
+GET     /oracle/databases/:id                                                       OracleController.GetAutonomousDatabase
+POST    /oracle/databases                                                           OracleController.CreateAutonomousDatabase
+PATCH   /oracle/databases/:id                                                       OracleController.UpdateAutonomousDatabase
+GET     /oracle/databases/connected/:databaseId                                     OracleController.GetOracleConnectedDB
+GET     /oracle/databases/connected/all                                             OracleController.GetAllOracleConnectedDB
+GET     /oracle/databases/auth_client/:id                                           OracleController.GetDatabaseOAuthClient
+GET     /oracle/databases/mapped_usernames/:userId                                  OracleController.GetMappedDbUsernames
+POST    /oracle/databases/actions/start                                             OracleController.StartAutonomousDatabase
+# Oracle Database Actions
+GET     /oracle/databases/actions/users                                          OracleDbActionsController.ListDbUsers
+POST    /oracle/databases/actions/users                                          OracleDbActionsController.CreateDbUsers
+POST    /oracle/databases/actions/user_management/create_user                    OracleDbActionsController.CreateDbUser
+POST    /oracle/databases/actions/users/delete_users                             OracleDbActionsController.DeleteDbUser
+GET     /oracle/databases/actions/users/:username                                OracleDbActionsController.GetDbUser
+GET     /oracle/databases/actions/roles                                          OracleDbActionsController.ListDbRoles
+GET     /oracle/databases/actions/roles/:role                                    OracleDbActionsController.GetDbRole
+POST    /oracle/databases/actions/roles/add_roles                                OracleDbActionsController.AddDbRoles
+POST    /oracle/databases/actions/roles/remove_roles                             OracleDbActionsController.RemoveDbRoles
+POST    /oracle/databases/actions/username_mapping                               OracleDbActionsController.SaveDbUsernameMapping
+POST    /oracle/database/actions/migrate_users                                   OracleDbActionsController.OracleMigrateDatabaseUsers
+
+# Oracle MySQL HeatWave
+GET     /oracle/mysql/dbsystems                                                  OracleMySQLHeatWaveController.ListMySQLHeatWaveDBSystems
+GET     /oracle/mysql/dbsystems/availability_domains                             OracleMySQLHeatWaveController.ListAvailabilityDomains
+GET     /oracle/mysql/dbsystems/:dbSystemId                                      OracleMySQLHeatWaveController.GetMySQLHeatWaveDBSystem
+POST    /oracle/mysql/dbsystems                                                  OracleMySQLHeatWaveController.CreateMySQLHeatWaveDBSystem
+PATCH   /oracle/mysql/dbsystems/:dbSystemId                                      OracleMySQLHeatWaveController.UpdateMySQLHeatWaveDBSystem
+GET     /oracle/mysql/dbsystems/core/shapes                                      OracleMySQLHeatWaveController.ListMySQLHeatWaveDBSystemShapes
+GET     /oracle/mysql/dbsystems/core/vcns                                        OracleMySQLHeatWaveController.ListVirtualCloudNetworks
+GET     /oracle/mysql/dbsystems/core/subnets                                     OracleMySQLHeatWaveController.ListVirtualCloudNetworkSubnets
+
+# OCI Postgresql DB Systems
+GET         /oracle/postgresql/db_systems/shapes            OraclePostgresqlController.ListPostgresqlDbSystemShapes
+GET        /oracle/postgresql/db_systems/vcns               OraclePostgresqlController.ListVirtualCloudNetworks
+GET        /oracle/postgresql/db_systems/subnets            OraclePostgresqlController.ListSubnets
+
+POST        /oracle/postgresql/db_systems/create            OraclePostgresqlController.CreatePostgresqlDbSystem
+PATCH       /oracle/postgresql/db_systems/update/:dbSystemId       OraclePostgresqlController.UpdatePostgresqlDBSystemName
+
+GET         /oracle/postgresql/db_systems                   OraclePostgresqlController.ListPostgresqlDBSystems
+GET         /oracle/postgresql/db_systems/:dbSystemId       OraclePostgresqlController.GetPostgresqlDBSystem
+
+# BigTable
+GET    /bigtable/projects/:projectID/instances                                     BigtableController.ListProjectInstances
+POST    /bigtable/projects/:projectID/instances/:instanceID/tables                                     BigtableController.CreateBigtableTable
+POST    /bigtable/projects/:projectID/instances/:instanceID/members                                     BigtableController.AddProjectInstanceMembers
+
+
+
+
+# OCI Nosql Tables
+GET         /oracle/nosql/tables                            OracleNosqlController.ListNosqlTables
+GET         /oracle/nosql/tables/:tableNameOrId             OracleNosqlController.GetNosqlTable
+
+# Stripe - webhooks
+POST    /stripe/webhooks                                                        StripeWebHooksz.HandleWebhooks
+
+# Settings
+GET     /settings/date-time                                                     SettingsController.GetServerDateTime
+GET     /settings/:companyID                                                    SettingsController.GetCompanySettings
+PUT     /settings/:companyID                                                    SettingsController.UpdateCompanySettings
+POST    /settings/test/items                                                    SettingsController.ImportTestDBItems
+
+
+GET /ses/test                                                                   SesController.TestEmail
+
+# Ignore favicon requests
+GET     /favicon.ico                            404
+
+# Map static resources from the /app/public folder to the /public path
+GET     /public/*filepath                       Static.Serve("public")
+
+# Catch all, this will route any request into the controller path
+#
+#                    **** WARNING ****
+# Enabling this exposes any controller and function to the web.
+# ** This is a serious security issue if used online **
+#
+# For rapid development uncomment the following to add new controller.action endpoints
+# without having to add them to the routes table.
+# *       /:controller/:action                    :controller.:action
