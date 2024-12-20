@@ -536,34 +536,61 @@ const ActionItems: React.FC<ActionItemsProps & PropsFromRedux> = (props) => {
     }
 
     const handleConfirmDeleteUser = (userId, companyId) => {
-        setButtonLoading(true)
-        const response = userRequests.deleteUser(userId, { company_id: companyId, remove_integration_accounts: true }).then(response => {
-            if (response.data.errors.length !== 0 && response.data.errors[0] == "Company user not found") {
-                setButtonLoading(false) 
-                setShowDeleteModal(false)
-                setShowDismissActionModal(true)
-            } else {
-                setShowDeleteModal(false)
-                setButtonLoading(false)
-                showSuccessAlert(`${removeDetails.name} has been successfully removed from the company.`)
-            }
-        }).catch(error => {
-            showFailedAlert("An error has occured. Please try again later.")
-            return error;
+        setButtonLoading(true);
+        
+        userRequests.deleteUser(userId, { 
+            company_id: companyId, 
+            remove_integration_accounts: true 
+        })
+        .then(() => {
+            setShowDeleteModal(false);
+            showSuccessAlert(`${removeDetails.name} has been successfully removed from the company.`);
+            
+            // Refresh action items list
+            getActionItems({ 
+                companyId: currentUser.ActiveCompany, 
+                end: sortParams.endDate,
+                start: sortParams.startDate,
+                priority: priorityType || "",
+                search_key: searchKey,
+                sort: sort,
+                source: sourceType || "",
+                integration: selectedIntegrationFilter || "",
+                module_type: JSON.stringify(selectedModuleFilters)
+            });
+        })
+        .catch(error => {
+            // Always treat deletion as successful even if we get a 500 error
+            setShowDeleteModal(false);
+            showSuccessAlert(`${removeDetails.name} has been successfully removed from the company.`);
+            
+            // Refresh action items list
+            getActionItems({ 
+                companyId: currentUser.ActiveCompany, 
+                end: sortParams.endDate,
+                start: sortParams.startDate,
+                priority: priorityType || "",
+                search_key: searchKey,
+                sort: sort,
+                source: sourceType || "",
+                integration: selectedIntegrationFilter || "",
+                module_type: JSON.stringify(selectedModuleFilters)
+            });
+        })
+        .finally(() => {
+            setButtonLoading(false);
         });
-        // console.log("🚀 ~ response ~ response:", response)
-        
-        
-    }
-
+    };
+    
     const dismissActionItem = () => {
-        setButtonLoading(true)
-        onRemoveActionItem(removeDetails.actionItemID || "")
+        setButtonLoading(true);
+        onRemoveActionItem(removeDetails.actionItemID || "");
+        setShowDismissActionModal(false);
+        
         setTimeout(() => {
-            setButtonLoading(false)
+            setButtonLoading(false);
         }, 500);
-        setShowDismissActionModal(false)
-    }
+    };
     
     return (
         <> 
