@@ -1,0 +1,7 @@
+.connected-items-thumbnail {
+  max-height: 65px;
+  max-width: 55px;
+  -o-object-fit: contain;
+     object-fit: contain;
+  border-radius: unset !important;
+}/*# sourceMappingURL=style.css.map */
