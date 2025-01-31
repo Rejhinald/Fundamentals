@@ -1660,8 +1660,7 @@ AddUsersToCompany()
 - Insert batch of users to a company
 ****************
 */
-func AddUsersToCompany(companyID string, users []models.User, perfomedBy, handler string, createAccount bool) error {
-	// insert batch
+func AddUsersToCompany(companyID string, users []models.User, performedBy, handler string, createAccount bool) error {
 	var batches [][]*dynamodb.WriteRequest
 	var currentBatch []*dynamodb.WriteRequest
 	for i, user := range users {
@@ -1673,6 +1672,14 @@ func AddUsersToCompany(companyID string, users []models.User, perfomedBy, handle
 			status = constants.ITEM_STATUS_PENDING
 		}
 
+		// Get existing user data if they exist
+		existingUser, err := ops.GetUserByID(user.UserID)
+		if err == nil && existingUser.UserID != "" {
+			// Don't update their active company if they're an existing user
+			// We'll let them choose which company to switch to after accepting invite
+			user.ActiveCompany = existingUser.ActiveCompany
+		}
+
 		assocAccounts := map[string]*dynamodb.AttributeValue{}
 		if user.AssociatedAccounts != nil {
 			marshal, err := dynamodbattribute.MarshalMap(user.AssociatedAccounts)
@@ -1680,7 +1687,8 @@ func AddUsersToCompany(companyID string, users []models.User, perfomedBy, handle
 			}
 			assocAccounts = marshal
 		}
-		// push to batch
+
+		// Create company-user relationship
 		currentBatch = append(currentBatch, &dynamodb.WriteRequest{PutRequest: &dynamodb.PutRequest{
 			Item: map[string]*dynamodb.AttributeValue{
 				"PK": {
@@ -1774,7 +1782,7 @@ func AddUsersToCompany(companyID string, users []models.User, perfomedBy, handle
 
 	logs = append(logs, &models.Logs{
 		CompanyID: companyID,
-		UserID:    perfomedBy,
+		UserID:    performedBy,
 		LogAction: constants.LOG_ACTION_ADD_COMPANY_MEMBERS,
 		LogType:   constants.ENTITY_TYPE_COMPANY_MEMBER,
 		LogInfo: &models.LogInformation{
@@ -6296,90 +6304,94 @@ func (c UserController) ManageAccess() revel.Result {
 			return c.RenderJSON(results)
 		}
 
-		// If completely new user (never been in any company)
-		if user.UserToken != "DONE" {
-			invited = true
+		// If user doesn't exist in company, create relationship
+		if companyUser.UserID == "" {
+			// If completely new user (never been in any company)
+			if user.UserToken != "DONE" {
+				invited = true
+				userToken := utils.GenerateRandomString(8)
 
-			// Generate new user token for verification
-			userToken := utils.GenerateRandomString(8)
-
-			// Only update the company-user relationship
-			updateCompanyUserInput := &dynamodb.UpdateItemInput{
-				ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-					":s": {
-						S: aws.String(constants.ITEM_STATUS_PENDING),
-					},
-					":ua": {
-						S: aws.String(currentTime),
-					},
-					":ut": {
-						S: aws.String(userToken),
-					},
-				},
-				ExpressionAttributeNames: map[string]*string{
-					"#s": aws.String("Status"),
-				},
-				TableName: aws.String(app.TABLE_NAME),
-				Key: map[string]*dynamodb.AttributeValue{
-					"PK": {
-						S: aws.String(utils.AppendPrefix(constants.PREFIX_COMPANY, companyID)),
-					},
-					"SK": {
-						S: aws.String(utils.AppendPrefix(constants.PREFIX_USER, user.UserID)),
-					},
-				},
-				UpdateExpression: aws.String("SET #s = :s, UpdatedAt = :ua, UserToken = :ut"),
-			}
-
-			_, err := app.SVC.UpdateItem(updateCompanyUserInput)
-			if err != nil {
-				c.Response.Status = 500
-				results["error"] = err.Error()
-				results["status"] = utils.GetHTTPStatus(constants.HTTP_STATUS_500)
-				return c.RenderJSON(results)
-			}
-
-			// Send verification email
-			var recipients []mail.Recipient
-			remoteAddr := strings.Split(c.Request.RemoteAddr, ":")[0]
-			frontendUrl, _ := revel.Config.String("url.frontend")
-
-			token, _ := utils.EncodeToJwtToken(jwt.MapClaims{
-				"userToken":  userToken,
-				"remoteAddr": remoteAddr,
-				"userID":     user.UserID,
-				"companyID":  companyID,
-			})
-
-			recipients = append(recipients, mail.Recipient{
-				Name:           user.FirstName + " " + user.LastName,
-				Email:          user.Email,
-				ActivationLink: frontendUrl + "/verify-email?token=" + token,
-			})
-
-			jobs.Now(mail.SendEmail{
-				Subject:    "Welcome to SaaSConsole!",
-				Recipients: recipients,
-				Template:   "verify.html",
-			})
-		} else {
-			// For existing users
-			if companyUser.UserID == "" {
-				// If user doesn't exist in this company, create the relationship
-				err = AddUsersToCompany(companyID, []models.User{user}, userID, "", false) // false = don't create new account
+				// Create company-user relationship first
+				err = AddUsersToCompany(companyID, []models.User{user}, userID, "", true) // true = create new account
 				if err != nil {
 					c.Response.Status = 500
 					results["error"] = err.Error()
 					results["status"] = utils.GetHTTPStatus(constants.HTTP_STATUS_500)
 					return c.RenderJSON(results)
 				}
-			}
 
-			// Update company-user status to ACTIVE for existing users
+				// Send verification email
+				var recipients []mail.Recipient
+				remoteAddr := strings.Split(c.Request.RemoteAddr, ":")[0]
+				frontendUrl, _ := revel.Config.String("url.frontend")
+
+				token, _ := utils.EncodeToJwtToken(jwt.MapClaims{
+					"userToken":  userToken,
+					"remoteAddr": remoteAddr,
+					"userID":     user.UserID,
+					"companyID":  companyID,
+				})
+
+				recipients = append(recipients, mail.Recipient{
+					Name:           user.FirstName + " " + user.LastName,
+					Email:          user.Email,
+					ActivationLink: frontendUrl + "/verify-email?token=" + token,
+				})
+
+				jobs.Now(mail.SendEmail{
+					Subject:    "Welcome to SaaSConsole!",
+					Recipients: recipients,
+					Template:   "verify.html",
+				})
+			} else {
+				// For existing users, just create company relationship
+				err = AddUsersToCompany(companyID, []models.User{user}, userID, "", false)
+				if err != nil {
+					c.Response.Status = 500
+					results["error"] = err.Error()
+					results["status"] = utils.GetHTTPStatus(constants.HTTP_STATUS_500)
+					return c.RenderJSON(results)
+				}
+
+				company, _ := ops.GetCompanyByID(companyID)
+
+				notificationContent := models.NotificationContentType{
+					RequesterUserID: userID,
+					ActiveCompany:   companyID,
+					Message:         "Your access to " + company.CompanyName + " has been enabled",
+				}
+
+				_, _ = ops.CreateNotification(ops.CreateNotificationInput{
+					UserID:              payload.User.UserID,
+					NotificationType:    constants.ROLE_UPDATE,
+					NotificationContent: notificationContent,
+					Global:              true,
+				}, c.Controller)
+
+				if payload.SendEmail {
+					var recipient []mail.Recipient
+					frontendUrl, _ := revel.Config.String("url.frontend")
+
+					recipient = append(recipient, mail.Recipient{
+						Name:           user.FirstName + " " + user.LastName,
+						Email:          user.Email,
+						InviteUserLink: frontendUrl + "/companies/" + company.CompanyID,
+						CompanyName:    company.CompanyName,
+					})
+
+					jobs.Now(mail.SendEmail{
+						Subject:    "You have been invited!",
+						Recipients: recipient,
+						Template:   "manage_access_invite.html",
+					})
+				}
+			}
+		} else {
+			// User exists in company, just update status
 			updateCompanyUserInput := &dynamodb.UpdateItemInput{
 				ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 					":s": {
-						S: aws.String(constants.ITEM_STATUS_ACTIVE), // ACTIVE for existing users
+						S: aws.String(constants.ITEM_STATUS_ACTIVE),
 					},
 					":ua": {
 						S: aws.String(currentTime),
@@ -6413,7 +6425,7 @@ func (c UserController) ManageAccess() revel.Result {
 			notificationContent := models.NotificationContentType{
 				RequesterUserID: userID,
 				ActiveCompany:   companyID,
-				Message:         "Your access to " + company.CompanyName + " has been enabled",
+				Message:         "Your access to " + company.CompanyName + " has been updated",
 			}
 
 			_, _ = ops.CreateNotification(ops.CreateNotificationInput{
@@ -6422,27 +6434,9 @@ func (c UserController) ManageAccess() revel.Result {
 				NotificationContent: notificationContent,
 				Global:              true,
 			}, c.Controller)
-
-			if payload.SendEmail {
-				var recipient []mail.Recipient
-				frontendUrl, _ := revel.Config.String("url.frontend")
-
-				recipient = append(recipient, mail.Recipient{
-					Name:           user.FirstName + " " + user.LastName,
-					Email:          user.Email,
-					InviteUserLink: frontendUrl + "/companies/" + company.CompanyID,
-					CompanyName:    company.CompanyName,
-				})
-
-				jobs.Now(mail.SendEmail{
-					Subject:    "You have been invited!",
-					Recipients: recipient,
-					Template:   "manage_access_invite.html",
-				})
-			}
 		}
 	} else {
-		// Disable access flow - stays the same
+		// Disable access flow
 		updateCompanyUserInput := &dynamodb.UpdateItemInput{
 			ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 				":s": {
