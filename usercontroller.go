@@ -1367,10 +1367,15 @@ func (c UserController) AddUsers(users []models.User, activeCompany, searchKey, 
 					currentBatch = nil
 				}
 			} else {
+				// MODIFY THIS PART
 				tmp := u
 				tmp.FirstName = user.FirstName
 				tmp.LastName = user.LastName
 				tmp.JobTitle = user.JobTitle
+				// Add these lines to keep the existing user's settings
+				tmp.UserToken = "DONE"                    // Keep their existing token
+				tmp.Status = constants.ITEM_STATUS_ACTIVE // Set them as active in new company
+				// Don't update their ActiveCompany - this preserves their original company
 				validUsers = append(validUsers, tmp)
 			}
 
@@ -1415,25 +1420,28 @@ func (c UserController) AddUsers(users []models.User, activeCompany, searchKey, 
 	// send activation link
 	if createAccount {
 		for _, v := range validUsers {
-
 			if v.UserToken != "DONE" {
+				// This part stays the same - for new users
 				sci := ops.SendCompanyInvitationParams{
 					CompanyID: companyID,
 					UserID:    v.UserID,
 				}
 				err := ops.SendCompanyInvitation(sci, c.Controller)
 				if err != nil {
-
+					// You can add error handling here if needed
 				}
 			} else {
-
+				// Modified part - for existing users
 				company, opsErr := ops.GetCompanyByID(companyID)
 				if opsErr != nil {
+					// You can add error handling here if needed
 				}
 
+				// Changed message to indicate adding to company rather than updating access
 				notificationContent := models.NotificationContentType{
 					RequesterUserID: userID,
-					Message:         "An admin has updated your access to " + company.CompanyName,
+					Message:         "You have been added to " + company.CompanyName, // Changed message
+					ActiveCompany:   companyID,                                       // Add this if you want to reference the company
 				}
 
 				_, opsError := ops.CreateNotification(ops.CreateNotificationInput{
@@ -1443,7 +1451,10 @@ func (c UserController) AddUsers(users []models.User, activeCompany, searchKey, 
 					Global:              true,
 				}, c.Controller)
 				if opsError != nil {
+					// You can add error handling here if needed
 				}
+
+				// No need to update ActiveCompany - existing user keeps their current active company
 			}
 		}
 	}
@@ -1671,6 +1682,9 @@ func AddUsersToCompany(companyID string, users []models.User, perfomedBy, handle
 		}
 		if user.UserToken != "DONE" && createAccount {
 			status = constants.ITEM_STATUS_PENDING
+		} else if user.UserToken == "DONE" {
+			// For existing activated users, set them active right away
+			status = constants.ITEM_STATUS_ACTIVE
 		}
 
 		assocAccounts := map[string]*dynamodb.AttributeValue{}
